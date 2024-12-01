@@ -3,7 +3,14 @@
     "Missive Board",
     "Alduin",
     "Steam Engine Cover",
-    "Warden's Chest"
+    "Warden's Chest",
+    "Viewable Storage", 
+    "Extra Storage",
+    "Clothing Satchel",
+    "Follower Outfit",
+    "Player's Chest",
+    "Temporary Equipment Box",
+    "Adventuring Gear" 
   ],
   "LocationKeys": [
     "LocTypeInn",

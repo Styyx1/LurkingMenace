@@ -50,6 +50,7 @@ namespace Events
                                 wasActivated                  = true;
                                 RE::TESObjectREFR* deadNPCref = dead_guy->AsReference();
                                 DelayedNPCSpawn(deadNPCref, settings->WerewolfEnemy, settings->SpawnExplosion, util->GetTimer());
+                                return RE::BSEventNotifyControl::kContinue;
                             }
                         }
                         else {
@@ -58,11 +59,13 @@ namespace Events
                                 wasActivated                  = true;
                                 RE::TESObjectREFR* deadNPCref = dead_guy->AsReference();
                                 DelayedNPCSpawn(deadNPCref, settings->SpawnEnemy, settings->SpawnExplosion, util->GetTimer());
+                                return RE::BSEventNotifyControl::kContinue;
                             }
                         }
                     }
                 }
-                if (!util->isAnyException()) {
+                if (!util->isAnyException() && eventPtr->objectActivated.get()->GetFormType() != RE::FormType::ActorCharacter && event->objectActivated.get()->GetActorOwner() != player->GetActorBase()) {
+                    util->logOwnership(eventPtr->objectActivated.get());
                     if (isContainerEventsActive() && !util->ExceptionName(nameOfCont)) {
                         if (event->objectActivated->GetBaseObject()->GetFormType() == RE::FormType::Container && !isLocked) {
                             if (settings->draugr_container_event_active && nameOfCont.contains("raugr")) {
@@ -71,6 +74,7 @@ namespace Events
                                     wasActivated = true;
                                     auto obj_ref = event->objectActivated->AsReference();
                                     DelayedContainerSpawn(obj_ref, settings->DraugrEnemy, settings->SpawnExplosion, util->GetTimer());
+                                    return RE::BSEventNotifyControl::kContinue;
                                 }
                             }
                             else if (settings->urn_explosion_event_active && nameOfCont.contains("Urn")) {
@@ -94,6 +98,7 @@ namespace Events
                                     auto obj_ref = event->objectActivated->AsReference();
                                     wasActivated = true;
                                     DelayedContainerSpawn(obj_ref, settings->DwarvenEnemy, settings->SpawnExplosion, util->GetTimer());
+                                    return RE::BSEventNotifyControl::kContinue;
                                 }
                             }
                             else if (settings->shade_container_event_active && (util->LocationCheck("LocTypeWarlockLair") || util->LocationCheck("LocTypeVampireLair"))) {
@@ -102,6 +107,7 @@ namespace Events
                                     wasActivated = true;
                                     auto obj_ref = event->objectActivated->AsReference();
                                     DelayedContainerSpawn(obj_ref, settings->ShadeEnemy, settings->SpawnExplosion, util->GetTimer());
+                                    return RE::BSEventNotifyControl::kContinue;
                                 }
                             }
                             else if (settings->generic_container_event_active) {
@@ -110,6 +116,7 @@ namespace Events
                                     wasActivated = true;
                                     auto obj_ref = event->objectActivated->AsReference();
                                     DelayedContainerSpawn(obj_ref, settings->MimicEnemy, settings->SpawnExplosion, util->GetTimer());
+                                    return RE::BSEventNotifyControl::kContinue;
                                 }
                             }
                             else

@@ -3,6 +3,7 @@
 #include "logging.h"
 #include "SKSE/Interfaces.h"
 #include "settings.h"
+#include "papyrus.h"
 
 void Listener(SKSE::MessagingInterface::Message *message) noexcept
 {
@@ -15,6 +16,10 @@ void Listener(SKSE::MessagingInterface::Message *message) noexcept
 		manager->RegisterActivateEvents();
 		auto menuManager = Events::MenuEvent::GetSingleton();
 		menuManager->RegisterMenuEvents();
+	}
+	if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
+		auto settings = Settings::GetSingleton();
+		settings->LoadSettings();
 	}
 }
 
@@ -32,7 +37,7 @@ SKSEPluginLoad(const SKSE::LoadInterface *a_skse)
 
 	if (const auto messaging{SKSE::GetMessagingInterface()}; !messaging->RegisterListener(Listener))
 		return false;
-
+	SKSE::GetPapyrusInterface()->Register(LurkingMenaceMCM::Papyrus::Register);
 	logger::info("{} has finished loading.", plugin->GetName());
 
 	return true;

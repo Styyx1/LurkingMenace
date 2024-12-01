@@ -1,16 +1,27 @@
 #include "settings.h"
 #include "utility.h"
 
-void Settings::LoadSettings() noexcept
+void Settings::LoadSettings()
 {
     CSimpleIniA ini;
     logger::info("Loading settings");
-    UpdateSettings(ini);
+
+    constexpr auto defaultSettingsPath = L"Data/MCM/Config/SurpriseSpawn/settings.ini";
+    constexpr auto mcmPath = L"Data/MCM/Settings/SurpriseSpawn.ini";
+
+    UpdateSettings(ini, defaultSettingsPath);
+    UpdateSettings(ini, mcmPath);
+
+    EnableDebugLogging();
+
+    if (compareValue > maxNumber || compareValue < minNumber) {
+        compareValue = maxNumber;
+        logger::debug("adjusted compare value to min and max");
+    }
+
     LoadExceptionJSON(L"Data/SKSE/Plugins/MimicExceptions.json");
     logger::info("Loaded settings");
 };
-
-
 
 double Settings::GetRandomDouble(double a_min, double a_max)
 {
@@ -28,23 +39,25 @@ void Settings::LoadExceptionJSON(const wchar_t* a_path)
     logger::debug("Loaded Json");
 }
 
-RE::FormID Settings::ParseFormID(const std::string& str)
-{
-    RE::FormID         result;
-    std::istringstream ss{ str };
-    ss >> std::hex >> result;
-    return result;
+void Settings::EnableDebugLogging() {
+    if (debug_logging == true) {
+        spdlog::get("Global")->set_level(spdlog::level::level_enum::debug);
+        logger::debug("Debug logging enabled");
+    }
+    else 
+        logger::info("debug logging disabled");
 }
 
 void Settings::LogForm(RE::TESForm* a_form) {
     logger::info("Form {} is the ID of {}", typeid(a_form).name(), a_form->GetFormID());
 }
-
-void Settings::UpdateSettings(CSimpleIniA &ini)
-{
-    CSimpleIniA ini;
+// "Data/MCM/Settings/SurpriseSpawn.ini"
+void Settings::UpdateSettings(CSimpleIniA &ini , std::filesystem::path path)
+{     
     ini.SetUnicode();
-    ini.LoadFile(R"(.\Data\SKSE\Plugins\SurpriseSpawner.ini)");
+    ini.LoadFile(path.string().c_str());
+    auto file = path.string();
+    logger::info("loading ini file from {}",file);
     maxNumber    = std::stoi(ini.GetValue("General", "iMaxNumberRand", "40")); // MCM
     minNumber    = std::stoi(ini.GetValue("General", "iMinNumberRand", "1")); // MCM
     compareValue = std::stoi(ini.GetValue("General", "iCompareValue", "18")); // MCM
@@ -61,21 +74,7 @@ void Settings::UpdateSettings(CSimpleIniA &ini)
     maxTime     = ini.GetDoubleValue("General", "iMaxDelayTime", 2.5); // MCM
     minTime     = ini.GetDoubleValue("General", "iMinDelayTime", 12.0); // MCM
     toggle_meme_sound = ini.GetBoolValue("Fun", "bMemeSound", false); // MCM
-    debug_logging     = ini.GetBoolValue("Log", "Debug", true); // MCM
-    if (useDelayRange) {
-        auto delay = GetRandomDouble(minTime, maxTime);
-        logger::debug("random time delay is {}", delay);
-        thread_delay = std::chrono::duration<double>(delay);
-    }
-    else
-        thread_delay = std::chrono::duration<double>(delay_timer);
-    if (debug_logging) {
-        spdlog::get("Global")->set_level(spdlog::level::level_enum::debug);
-        logger::debug("Debug logging enabled");
-    };
-    if (compareValue > maxNumber || compareValue < minNumber) {
-        compareValue = maxNumber;
-    }
+    debug_logging     = ini.GetBoolValue("Debugging", "bEnableDebug"); // MCM
 }
 
 void Settings::LoadForms() noexcept
@@ -92,8 +91,6 @@ void Settings::LoadForms() noexcept
     const int mimic_chest_spawn = 0x814;
     const int meme_sound_id = 0x810;
     const int stress_spell_id = 0x816;
-    const int min_chance_global = 0x818;
-    const int max_chance_global = 0x819;
 
     logger::info("Loading forms");
     const char* mName = "SurpriseSpawn.esp";
@@ -122,7 +119,7 @@ void Settings::LoadForms() noexcept
         LogForm(StressSpell);
     }
 
-    WerewolfFaction = dataHandler->LookupForm(ParseFormID("0x43594"), "Skyrim.esm")->As<RE::TESFaction>();
+    WerewolfFaction = dataHandler->LookupForm(0x43594, "Skyrim.esm")->As<RE::TESFaction>();
     logger::debug("loaded Faction: {}", WerewolfFaction->GetName());
 
     logger::info("All Forms loaded");

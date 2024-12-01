@@ -93,6 +93,18 @@ public:
         }
     }
 
+    void logOwnership(RE::TESObjectREFR* obj) {
+        if (obj->GetActorOwner()) {
+            logger::debug("owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName());
+            return;
+        }
+        else {
+            logger::debug("object {} has no owner actor", obj->GetName());
+            return;
+        }
+            
+    }
+
     bool isAnyException()
     {
         if (isRestrictedCell()) {
