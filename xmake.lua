@@ -43,7 +43,6 @@ target("SurpriseSpawner")
     add_includedirs("src")
     set_pcxxheader("src/pch.h")
 
-add_extrafiles("release/**.ini")
 add_extrafiles("release/**.json")
 
 after_build(function(target)
@@ -54,7 +53,6 @@ after_build(function(target)
                 os.mkdir(plugins)
                 os.trycp(target:targetfile(), plugins)
                 os.trycp(target:symbolfile(), plugins)
-                os.trycp("$(projectdir)/release/**.ini", plugins)
                 os.trycp("$(projectdir)/release/**.json", plugins)
             end
         end
