@@ -3,73 +3,38 @@
 
 namespace Events
 {
-    class LootActivateEvent : public RE::BSTEventSink<RE::TESActivateEvent>
+    using EventRes = RE::BSEventNotifyControl;
+    void RegisterEvents();
+
+    struct LootActivateEvent : public REX::Singleton<LootActivateEvent>, public RE::BSTEventSink<RE::TESActivateEvent>
     {
-        LootActivateEvent()                                    = default;
-        LootActivateEvent(const LootActivateEvent&)            = delete;
-        LootActivateEvent(LootActivateEvent&&)                 = delete;
-        LootActivateEvent& operator=(const LootActivateEvent&) = delete;
-        LootActivateEvent& operator=(LootActivateEvent&&)      = delete;
-
-    public:
-        static LootActivateEvent* GetSingleton()
-        {
-            static LootActivateEvent singleton;
-            return &singleton;
-        }
-
-        RE::BSEventNotifyControl ProcessEvent(const RE::TESActivateEvent* a_event, RE::BSTEventSource<RE::TESActivateEvent>*);
+        EventRes ProcessEvent(const RE::TESActivateEvent* a_event, RE::BSTEventSource<RE::TESActivateEvent>*);
 
         void RegisterActivateEvents()
         {
-            logger::info("{:*^30}", "EVENTS");
-
             if (const auto scripts = RE::ScriptEventSourceHolder::GetSingleton()) {
                 scripts->AddEventSink<RE::TESActivateEvent>(this);
-                logger::info("Registered {}"sv, typeid(RE::TESActivateEvent).name());
+                REX::INFO("Registered {}", typeid(RE::TESActivateEvent).name());
             }
         }
+        inline static bool was_activated{ false };
 
-        bool wasActivated{ false };
-
-        bool isContainerEventsActive()
-        {
-            auto settings = Settings::GetSingleton();
-            if (settings->draugr_container_event_active || settings->dwarven_container_event_active || settings->generic_container_event_active
-                || settings->urn_explosion_event_active || settings->shade_container_event_active)
-            {
-                return true;
-            }
-            else
-                return false;
-        }
+        void ProcessNPCEvent(RE::Actor* actor);
+        void ProcessContainerEvent(const RE::TESActivateEvent* a_event);
 
         void DelayedContainerSpawn(RE::TESObjectREFR* a_eventItem, RE::TESNPC* a_enemyToSpawn, RE::TESBoundObject* a_explosion, std::chrono::duration<double> a_threadDelay);
         void DelayedNPCSpawn(RE::TESObjectREFR* a_eventItem, RE::TESNPC* a_enemyToSpawn, RE::TESBoundObject* a_explosion, std::chrono::duration<double> a_threadDelay);
     };
 
-    class MenuEvent : public RE::BSTEventSink<RE::MenuOpenCloseEvent>
+    struct MenuEvent : public REX::Singleton<MenuEvent>, public RE::BSTEventSink<RE::MenuOpenCloseEvent>
     {
-        MenuEvent()                            = default;
-        MenuEvent(const MenuEvent&)            = delete;
-        MenuEvent(MenuEvent&&)                 = delete;
-        MenuEvent& operator=(const MenuEvent&) = delete;
-        MenuEvent& operator=(MenuEvent&&)      = delete;
-
-    public:
-        static MenuEvent* GetSingleton()
-        {
-            static MenuEvent singleton;
-            return &singleton;
-        }
-
-        RE::BSEventNotifyControl ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
+        EventRes ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
 
         void RegisterMenuEvents()
         {
             if (const auto scripts = RE::UI::GetSingleton()) {
                 scripts->AddEventSink<RE::MenuOpenCloseEvent>(this);
-                logger::info("Registered {}"sv, typeid(RE::MenuOpenCloseEvent).name());
+                REX::INFO("Registered {}", typeid(RE::MenuOpenCloseEvent).name());
             }
         }
 

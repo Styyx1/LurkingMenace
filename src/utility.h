@@ -1,17 +1,61 @@
 #pragma once
 #include "cache.h"
 #include "settings.h"
+#include "formloader.h"
 
-class Utility : public Singleton<Utility>
+struct Utility
 {
-public:
-    bool ExceptionName(std::string exception_name)
-    {
-        auto                     settings   = Settings::GetSingleton();
-        std::vector<std::string> exceptions = settings->JSONSettings["Names"];
+    inline static bool DoesNameContain(const std::string& base_name, const std::string& to_search) {
+        if (base_name.empty() || to_search.empty())
+            return false;
 
-        if (std::count(exceptions.begin(), exceptions.end(), exception_name)) {
-            logger::debug("{} is a restricted name", exception_name);
+        std::string lowercase_base = base_name;
+        std::ranges::transform(lowercase_base, lowercase_base.begin(), ::tolower);
+        std::string lowercase_search = to_search;
+        std::ranges::transform(lowercase_search, lowercase_search.begin(), ::tolower);
+
+        if (lowercase_base.contains(lowercase_search))
+            return true;
+        return false;
+    }
+
+    inline static bool HasRestrictedName(RE::TESObjectREFR* form) {
+
+        std::string res_name = form->GetName();
+        REX::INFO("name is {}", form->GetName());
+        if (res_name.empty()) {
+            REX::INFO("no name found");
+            return false;
+        }
+
+        std::string lowered = res_name;
+        std::ranges::transform(lowered, lowered.begin(), ::tolower);
+
+        if (std::count(Config::JSONLoader::exception_names.begin(), Config::JSONLoader::exception_names.end(), lowered)) {
+            REX::INFO("{} is a restricted name", res_name);
+            return true;
+        }
+        else
+            return false;
+
+    }
+
+    static inline bool IsRestrictedForm(RE::TESForm* form) {
+        if (Config::JSONLoader::exception_forms.contains(form))
+            return true;
+        return false;
+    }
+
+    inline static bool isRestrictedCell()
+    {
+        RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
+        auto                     cell = ActorUtil::GetPlayerCell(player);
+
+        if (!cell)
+            return false;
+
+        if (Config::JSONLoader::exception_cells.contains(cell)) {
+            REX::INFO("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID());
             return true;
         }
         else {
@@ -19,7 +63,73 @@ public:
         }
     };
 
-    // Editor IDs appear to not be loaded, even with PO3 Tweaks, I'll maybe revisit this idea at some point
+    inline static bool isRestrictedLoc()
+    {
+        RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
+
+        if (player->GetCurrentLocation()) {
+            REX::INFO("location is {}", player->GetParentCell()->GetFormEditorID());
+            return player->GetCurrentLocation()->HasAnyKeywordByEditorID(Config::JSONLoader::exception_keywords);
+        }
+        else {
+            REX::INFO("no location found");
+            return false;
+        }
+    }
+
+    inline static void LogOwnership(RE::TESObjectREFR* obj) {
+        if (obj->GetActorOwner()) {
+            REX::INFO("owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName());
+            return;
+        }
+        else {
+            REX::INFO("object {} has no owner actor", obj->GetName());
+            return;
+        }
+
+    }
+
+    inline static bool isAnyException(RE::TESObjectREFR* form)
+    {
+        if (IsRestrictedForm(form)) {
+            REX::INFO("Is restricted form");
+            return true;
+        }
+        if (isRestrictedCell()) {
+            REX::INFO("restricted cell");
+            return true;
+        }
+        if (isRestrictedLoc()) {
+            REX::INFO("restricted location type keyword");
+            return true;
+        }
+        if (HasRestrictedName(form)) {
+            REX::INFO("Has restricted name");
+            return true;
+        }
+        else
+            return false;
+    }
+
+    inline static std::chrono::duration<double> GetTimer()
+    {
+        using set = Config::Settings;
+        if (set::delay_time_range_active.GetValue()) {
+            auto delay = RandomiserUtil::GetRandomDouble(set::delay_time_min.GetValue(), set::delay_time_max.GetValue());
+            REX::INFO("random time delay is {}", delay);
+            set::thread_delay = std::chrono::duration<double>(delay);
+            return set::thread_delay;
+        }
+        else {
+            set::thread_delay = std::chrono::duration<double>(set::delay_timer_seconds.GetValue());
+            return set::thread_delay;
+        }
+    }
+
+    
+
+    
+
 
     /*bool isRestrictedContainer(std::string a_contEDID)
     {
@@ -30,14 +140,14 @@ public:
      * settings->JSONSettings["ContainerIDs"];        
 
         if (std::count(exceptions.begin(), exceptions.end(), a_contEDID.c_str())) {
- logger::debug("{}
+ REX::INFO("{}
      * is
      * a
      * restricted container", a_contEDID);
             return true;
         }
         else {
-            logger::debug("{} is not restricted", a_contEDID);
+            REX::INFO("{} is not restricted", a_contEDID);
  return
 
      *
@@ -61,190 +171,98 @@ public:
         }
     }*/
 
-    bool isRestrictedCell()
-    {
-        auto                     settings   = Settings::GetSingleton();
-        std::vector<std::string> exceptions = settings->JSONSettings["Cells"];
-        RE::PlayerCharacter*     player     = Cache::GetPlayerSingleton();
-        auto                     EDID       = player->GetParentCell()->GetFormEditorID();
+    
 
-        if (std::count(exceptions.begin(), exceptions.end(), EDID)) {
-            logger::debug("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID());
-            return true;
-        }
-        else {
-            return false;
-        }
-    };
-
-    bool isRestrictedLoc()
-    {
-        auto                     settings   = Settings::GetSingleton();
-        std::vector<std::string> exceptions = settings->JSONSettings["LocationKeys"];
-        RE::PlayerCharacter*     player     = Cache::GetPlayerSingleton();
-
-        if (player->GetCurrentLocation() != nullptr) {
-            logger::debug("location is {}", player->GetParentCell()->GetFormEditorID());
-            return player->GetCurrentLocation()->HasAnyKeywordByEditorID(exceptions);
-        }
-        else {
-            logger::debug("no location found");
-            return false;
-        }
-    }
-
-    void logOwnership(RE::TESObjectREFR* obj) {
-        if (obj->GetActorOwner()) {
-            logger::debug("owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName());
-            return;
-        }
-        else {
-            logger::debug("object {} has no owner actor", obj->GetName());
-            return;
-        }
-            
-    }
-
-    bool isAnyException()
-    {
-        if (isRestrictedCell()) {
-            logger::debug("restricted cell");
-            return true;
-        }
-        if (isRestrictedLoc()) {
-            logger::debug("restricted location type keyword");
-            return true;
-        }
-        else
-            return false;
-    }
-
-    inline int MinChance()
-    {
-        const auto settings = Settings::GetSingleton();
-        return settings->minNumber;
-    }
-
-    inline int MaxChance()
-    {
-        const auto settings = Settings::GetSingleton();
-        return settings->maxNumber;
-    }
-
-    inline int GetRandomChance(int a_min, int a_max)
-    {
-        static std::random_device       rd;
-        static std::mt19937             gen(rd());
-        std::uniform_int_distribution<> distrib(a_min, a_max);
-        logger::debug("random number is {} between {} and {}", distrib(gen), a_min, a_max);
-        return distrib(gen);
-    }
-
-    inline static std::chrono::duration<double> GetTimer()
-    {
-        auto settings = Settings::GetSingleton();
-        if (settings->useDelayRange) {
-            auto delay = settings->GetRandomDouble(settings->minTime, settings->maxTime);
-            logger::debug("random time delay is {}", delay);
-            settings->thread_delay = std::chrono::duration<double>(delay);
-            return settings->thread_delay;
-        }
-        else {
-            settings->thread_delay = std::chrono::duration<double>(settings->delay_timer);
-            return settings->thread_delay;
-        }
-    }
-
-    void RemoveAllItems(RE::TESObjectREFR* a_refToRemoveFrom, RE::TESObjectREFR* a_refToGiveItems)
+    inline static void RemoveAllItems(RE::TESObjectREFR* a_refToRemoveFrom, RE::TESObjectREFR* a_refToGiveItems)
     {
         auto inv_map = a_refToRemoveFrom->GetHandle().get()->GetInventoryCounts();
         for (auto& items : inv_map) {
             if (items.first->GetFormType() != RE::FormType::LeveledItem) {
                 a_refToRemoveFrom->GetHandle().get()->RemoveItem(items.first, items.second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, a_refToGiveItems);
-                logger::debug("removed {}", items.first->GetName());
+                REX::INFO("removed {}", items.first->GetName());
             }
             else
                 return;
         }
     }
 
-    void PlayMeme(RE::BGSSoundDescriptorForm* sound)
+    inline static void PlayMeme()
     {
-        auto                 settings = Settings::GetSingleton();
-        RE::BSSoundHandle    handle;
-        auto                 am = RE::BSAudioManager::GetSingleton();
         RE::PlayerCharacter* p  = Cache::GetPlayerSingleton();
-        if (settings->toggle_meme_sound) {
-            am->BuildSoundDataFromDescriptor(handle, sound->soundDescriptor);
-            handle.SetVolume(1.5f);
-            handle.SetObjectToFollow(p->Get3D());
-            handle.Play();
+        if (Config::Settings::meme_sound_active.GetValue()) {
+            SoundUtil::PlaySound(p, Forms::Loader::meme_sound, 1.5f);
         }
         else
             return;
     }
 
-    bool LocationCheck(std::string_view locKeyword)
+    inline static bool LocationCheck(std::string_view locKeyword)
     {
         RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
 
         if (player->GetCurrentLocation() != nullptr) {
             return player->GetCurrentLocation()->HasKeywordString(locKeyword);
-            // logger::debug("current location is: {}", player->GetCurrentLocation()->GetName());
+            // REX::INFO("current location is: {}", player->GetCurrentLocation()->GetName());
         }
         else {
-            logger::debug("no location found");
+            REX::INFO("no location found");
             return false;
         }
     }
 
-    bool LocPlayerOwned()
+    inline static bool LocPlayerOwned()
     {
         RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
 
         if (player->GetCurrentLocation() != nullptr) {
             if (player->GetCurrentLocation()->HasKeywordString("LocTypePlayerHouse")) {
-                // logger::debug("current location is: {}", player->GetCurrentLocation()->GetName());
+                // REX::INFO("current location is: {}", player->GetCurrentLocation()->GetName());
                 return true;
             }
             else
                 return false;
         }
         else {
-            // logger::debug("current location is: {}", player->GetCurrentLocation()->GetName());
+            // REX::INFO("current location is: {}", player->GetCurrentLocation()->GetName());
             return false;
-        }
-    }
-
-    static bool IsPermanent(RE::MagicItem* item)
-    {
-        switch (item->GetSpellType()) {
-        case RE::MagicSystem::SpellType::kDisease:
-        case RE::MagicSystem::SpellType::kAbility:
-        case RE::MagicSystem::SpellType::kAddiction: {
-            return true;
-        }
-        default: {
-            return false;
-        }
-        }
-    }
-
-    inline static void ApplySpell(RE::Actor* caster, RE::Actor* target, RE::SpellItem* spell)
-    {
-        if (IsPermanent(spell)) {
-            target->AddSpell(spell);
-        }
-        else {
-            caster->GetMagicCaster(RE::MagicSystem::CastingSource::kInstant)->CastSpellImmediate(spell, false, target, 1.0F, false, 0.0F, nullptr);
         }
     }
 
     inline static void ApplyStress(RE::Actor* target)
     {
         RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
-        auto                 settings = Settings::GetSingleton();
-        Utility::ApplySpell(player, target, settings->StressSpell);
-        logger::debug("applied {} to {}", settings->StressSpell->GetName(), target->AsReference()->GetName());
+        MagicUtil::ApplySpell(player, target, Forms::Loader::stress_spell);
+        REX::INFO("applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName());
+    }
+
+    enum class SpawnEvent : uint32_t {
+        kDraugr = 1,
+        kDwarven = 2,
+        kWarlock = 3,
+        kUrn = 4,
+        kGeneric = 5,
+        kNone = 0,
+    };
+    inline static SpawnEvent GetSpawnEvent(RE::TESForm* reference) {
+        using s = Config::Settings;
+        if (s::container_spawn_draugr_active.GetValue() && DoesNameContain(reference->GetName(), "draugr")) {
+            return SpawnEvent::kDraugr;
+        }
+        if (s::container_spawn_dwarven_active.GetValue() && LocationCheck("LocTypeDwarvenAutomatons")) {
+            return SpawnEvent::kDwarven;
+        }
+        if (s::container_spawn_warlock_active.GetValue() && (LocationCheck("LocTypeWarlockLair") || LocationCheck("LocTypeVampireLair"))) {
+            return SpawnEvent::kWarlock;
+        }
+        RE::PlayerCharacter* const& player = RE::PlayerCharacter::GetSingleton();
+        if (s::explosion_spawn_urn.GetValue() && DoesNameContain(reference->GetName(), "urn") && CellUtil::IsDungeon(ActorUtil::GetPlayerCell(player))) {
+            return SpawnEvent::kUrn;
+        }
+        if (s::container_spawn_mimic_active.GetValue()) {
+            return SpawnEvent::kGeneric;
+        }
+
+        return SpawnEvent::kNone;
+
     }
 };

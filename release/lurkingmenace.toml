@@ -1,0 +1,54 @@
+# =============================================================
+# Lurking Menace - Configuration File
+# This file controls spawn rates, event toggles, and debug options.
+# You can override values in 'lurkingmenace_custom.toml'.
+# =============================================================
+
+[Debugging]
+# Enables verbose logging for debugging and development.
+bEnableDebug = true
+
+[Settings]
+# Global spawn chance for mimic-related events (0.0 - 100.0)
+fEventSpawnChance = 100.0
+
+[Toggles]
+# Whether mimics can spawn from NPC corpses
+bSpawnFromNPCs = true
+
+# Enable Draugr spawns from containers (e.g., "Draugr Tomb" chests)
+bChestSpawnDraugr = true
+
+# Enable Dwarven automaton spawns from containers in Dwemer ruins
+bChestSpawnDwarven = true
+
+# Enable Warlock/Vampire (Shade) spawns from containers in magical lairs
+bChestSpawnWarlock = true
+
+# Enable generic mimic spawns from standard chests
+bChestSpawnMimic = true
+
+# Enable urn explosion events in dungeons
+bUrnExplosions = true
+
+# Play the meme sound effect when events trigger
+bUseMemeSound = true
+
+# Enable explosion VFX when a spawn event happens
+bUseVisualExplosions = true
+
+[Timers]
+# Enable delayed explosion or spawn effects
+bUseDelayedExplosion = true
+
+# Enable randomized delay between min/max values instead of fixed delay
+bUseDelayTimeRanges = true
+
+# Fixed delay time in seconds (only used if range is disabled)
+fDelayTime = 2.5
+
+# Minimum delay in seconds (if using time ranges)
+fDelayTimeMinimum = 1.0
+
+# Maximum delay in seconds (if using time ranges)
+fDelayTimeMaximum = 10.0

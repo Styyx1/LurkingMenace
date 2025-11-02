@@ -1,44 +1,30 @@
 #include "cache.h"
-#include "events.h"
-#include "logging.h"
-#include "SKSE/Interfaces.h"
 #include "settings.h"
-#include "papyrus.h"
+#include "formloader.h"
+#include "events.h"
 
-void Listener(SKSE::MessagingInterface::Message *message) noexcept
+
+void Listener(SKSE::MessagingInterface::Message *a_msg) noexcept
 {
-	if (message->type == SKSE::MessagingInterface::kDataLoaded)
-	{
-		auto settings = Settings::GetSingleton();
-		settings->LoadSettings();
-		settings->LoadForms();
+	switch (a_msg->type) {
+	case SKSE::MessagingInterface::kDataLoaded:
+		Forms::Loader::GetSingleton()->LoadForms(Config::Settings::debug_logging.GetValue());
+		Config::JSONLoader::LoadExceptionsFromFolder();
 		auto manager = Events::LootActivateEvent::GetSingleton();
 		manager->RegisterActivateEvents();
 		auto menuManager = Events::MenuEvent::GetSingleton();
 		menuManager->RegisterMenuEvents();
-	}
-	if (message->type == SKSE::MessagingInterface::kPostLoadGame) {
-		auto settings = Settings::GetSingleton();
-		settings->LoadSettings();
+		break;
 	}
 }
 
 SKSEPluginLoad(const SKSE::LoadInterface *a_skse)
 {
-	InitializeLogging();
-
-	const auto plugin{SKSE::PluginDeclaration::GetSingleton()};
-	const auto version{plugin->GetVersion()};
-
-	logger::info("{} {} is loading...", plugin->GetName(), version);
-
 	SKSE::Init(a_skse);
+	
 	Cache::CacheAddLibAddresses();
-
-	if (const auto messaging{SKSE::GetMessagingInterface()}; !messaging->RegisterListener(Listener))
-		return false;
-	SKSE::GetPapyrusInterface()->Register(LurkingMenaceMCM::Papyrus::Register);
-	logger::info("{} has finished loading.", plugin->GetName());
+	SKSE::GetMessagingInterface()->RegisterListener(Listener);
+	Config::Settings::GetSingleton()->UpdateSettings();
 
 	return true;
 }

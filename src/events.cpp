@@ -1,205 +1,218 @@
 #include "events.h"
 #include "settings.h"
 #include "utility.h"
+#include "formloader.h"
 
 namespace Events
 {
-    RE::BSEventNotifyControl MenuEvent::ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
+    void RegisterEvents()
     {
-        auto activateManager = Events::LootActivateEvent::GetSingleton();
-        auto menu            = Events::MenuEvent::GetSingleton();
-        auto lootMenu        = RE::ContainerMenu::MENU_NAME;
+        LootActivateEvent::GetSingleton()->RegisterActivateEvents();
+        MenuEvent::GetSingleton()->RegisterMenuEvents();
+    }
 
-        if (!event) {
-            return RE::BSEventNotifyControl::kContinue;
-        }
+    EventRes MenuEvent::ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*)
+    { 
+        auto loot_menu        = RE::ContainerMenu::MENU_NAME;
 
-        bool active = activateManager->wasActivated;
-        if (event->menuName == lootMenu) {
-            if (active) {
-                menu->CloseMenu(lootMenu);
-                active = false;
+        if (!event)
+            return EventRes::kContinue;
+
+        if(!event->opening)
+            return EventRes::kContinue;
+
+        if (event->menuName == loot_menu) {
+            if (Events::LootActivateEvent::was_activated) {
+                MenuUtil::CloseMenu(loot_menu);
+                Events::LootActivateEvent::was_activated = false;
             }
         }
-        return RE::BSEventNotifyControl::kContinue;
+        return EventRes::kContinue;
     };
 
-    RE::BSEventNotifyControl LootActivateEvent::ProcessEvent(const RE::TESActivateEvent* eventPtr, RE::BSTEventSource<RE::TESActivateEvent>*)
+    void LootActivateEvent::ProcessNPCEvent(RE::Actor* actor)
     {
-        if (!eventPtr)
-            return RE::BSEventNotifyControl::kContinue;
-
-        auto event = eventPtr;
-
-        auto                 settings = Settings::GetSingleton();
-        auto                 util     = Utility::GetSingleton();
-        RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
-
-        bool        isLocked   = event->objectActivated->IsLocked();
-        std::string nameOfCont = event->objectActivated->GetName();
-
-        if (eventPtr) {
-            if (event->actionRef->IsPlayerRef()) {
-                if (settings->npc_event_active && !util->isAnyException()) {
-                    RE::Actor* dead_guy = event->objectActivated->As<RE::Actor>();
-                    // Only do stuff when looking at dead actors
-                    if (dead_guy && dead_guy->IsDead() && !util->ExceptionName(nameOfCont)) {
-                        if (dead_guy->IsInFaction(settings->WerewolfFaction)) {
-                            auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                            if (chance == settings->compareValue) {
-                                wasActivated                  = true;
-                                RE::TESObjectREFR* deadNPCref = dead_guy->AsReference();
-                                DelayedNPCSpawn(deadNPCref, settings->WerewolfEnemy, settings->SpawnExplosion, util->GetTimer());
-                                return RE::BSEventNotifyControl::kContinue;
-                            }
-                        }
-                        else {
-                            auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                            if (chance == settings->compareValue) {
-                                wasActivated                  = true;
-                                RE::TESObjectREFR* deadNPCref = dead_guy->AsReference();
-                                DelayedNPCSpawn(deadNPCref, settings->SpawnEnemy, settings->SpawnExplosion, util->GetTimer());
-                                return RE::BSEventNotifyControl::kContinue;
-                            }
-                        }
-                    }
+        if (actor && actor->IsDead()) {
+            if (actor->IsInFaction(Forms::Loader::werewolf_faction)) {
+                if (RandomiserUtil::IsPercentageChanceFloat(Config::Settings::mimic_chance.GetValue())) {
+                    was_activated = true;
+                    DelayedNPCSpawn(actor, Forms::Loader::npc_spawn_werewolf, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
+                    return;
                 }
-                if (!util->isAnyException() && eventPtr->objectActivated.get()->GetFormType() != RE::FormType::ActorCharacter && event->objectActivated.get()->GetActorOwner() != player->GetActorBase()) {
-                    util->logOwnership(eventPtr->objectActivated.get());
-                    if (isContainerEventsActive() && !util->ExceptionName(nameOfCont)) {
-                        if (event->objectActivated->GetBaseObject()->GetFormType() == RE::FormType::Container && !isLocked) {
-                            if (settings->draugr_container_event_active && nameOfCont.contains("raugr")) {
-                                auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                                if (chance == settings->compareValue) {
-                                    wasActivated = true;
-                                    auto obj_ref = event->objectActivated->AsReference();
-                                    DelayedContainerSpawn(obj_ref, settings->DraugrEnemy, settings->SpawnExplosion, util->GetTimer());
-                                    return RE::BSEventNotifyControl::kContinue;
-                                }
-                            }
-                            else if (settings->urn_explosion_event_active && nameOfCont.contains("Urn")) {
-                                auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                                if (chance == settings->compareValue) {
-                                    wasActivated = true;
-                                    event->objectActivated->AsReference()->PlaceObjectAtMe(settings->UrnExplosion, false);
-                                    util->ApplyStress(player);
-                                    std::jthread([=] {
-                                        std::this_thread::sleep_for(1s);
-                                        SKSE::GetTaskInterface()->AddTask([=] {
-                                            wasActivated = false;
-                                            logger::debug("set activated to false");
-                                        });
-                                    }).detach();
-                                }
-                            }
-                            else if (settings->dwarven_container_event_active && util->LocationCheck("LocTypeDwarvenAutomatons")) {
-                                auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                                if (chance == settings->compareValue) {
-                                    auto obj_ref = event->objectActivated->AsReference();
-                                    wasActivated = true;
-                                    DelayedContainerSpawn(obj_ref, settings->DwarvenEnemy, settings->SpawnExplosion, util->GetTimer());
-                                    return RE::BSEventNotifyControl::kContinue;
-                                }
-                            }
-                            else if (settings->shade_container_event_active && (util->LocationCheck("LocTypeWarlockLair") || util->LocationCheck("LocTypeVampireLair"))) {
-                                auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                                if (chance == settings->compareValue) {
-                                    wasActivated = true;
-                                    auto obj_ref = event->objectActivated->AsReference();
-                                    DelayedContainerSpawn(obj_ref, settings->ShadeEnemy, settings->SpawnExplosion, util->GetTimer());
-                                    return RE::BSEventNotifyControl::kContinue;
-                                }
-                            }
-                            else if (settings->generic_container_event_active) {
-                                auto chance = util->GetRandomChance(util->MinChance(), util->MaxChance());
-                                if (chance == settings->compareValue) {
-                                    wasActivated = true;
-                                    auto obj_ref = event->objectActivated->AsReference();
-                                    DelayedContainerSpawn(obj_ref, settings->MimicEnemy, settings->SpawnExplosion, util->GetTimer());
-                                    return RE::BSEventNotifyControl::kContinue;
-                                }
-                            }
-                            else
-                                return RE::BSEventNotifyControl::kContinue;
-                        }
-                    }
+            }
+            else {
+                auto chance = RandomiserUtil::GetRandomFloat(0.0, 100.0);
+                if (chance <= Config::Settings::mimic_chance.GetValue()) {
+                    was_activated = true;
+                    DelayedNPCSpawn(actor, Forms::Loader::npc_spawn_generic, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
+                    return;
                 }
             }
         }
-
-        return RE::BSEventNotifyControl::kContinue;
     }
+
+    EventRes LootActivateEvent::ProcessEvent(const RE::TESActivateEvent* a_event, RE::BSTEventSource<RE::TESActivateEvent>*)
+    {
+        using namespace Forms;
+        using namespace Config;
+        if (!a_event)
+            return EventRes::kContinue;
+
+        if (!a_event->actionRef || !a_event->objectActivated.get())
+            return EventRes::kContinue;
+
+        auto activated_object = a_event->objectActivated.get();
+        RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
+        if(!a_event->actionRef->IsPlayerRef())
+            return EventRes::kContinue;
+
+        bool        isLocked   = a_event->objectActivated->IsLocked();
+        std::string nameOfCont = a_event->objectActivated->GetName();
+
+        if(!Utility::isAnyException(activated_object)){
+            if (Settings::spawn_from_npcs.GetValue() && activated_object->Is(RE::FormType::ActorCharacter)) {
+                RE::Actor* dead_guy = a_event->objectActivated->As<RE::Actor>();
+                // Only do stuff when looking at dead actors
+                if (dead_guy && dead_guy->IsDead()) {
+                    ProcessNPCEvent(dead_guy);
+                }
+                return EventRes::kContinue;
+            }
+            REX::INFO("no npc event");
+            bool is_player_owned = activated_object->GetActorOwner() == player->GetActorBase();
+            REX::INFO("is player owned bool is {} and is locked bool is {}", is_player_owned, isLocked);
+            if (activated_object->GetBaseObject()->Is(RE::FormType::Container) && !is_player_owned && !isLocked) {
+                REX::INFO("we're inside container events. yay");
+                if(Settings::debug_logging.GetValue())
+                    Utility::LogOwnership(activated_object);
+                if (Settings::GetSingleton()->ContainerEventsActive()) {
+                    auto ev_type = Utility::GetSpawnEvent(activated_object);
+                    REX::INFO("starting to look up SpawnEvent");
+
+                    if (ev_type == Utility::SpawnEvent::kNone) {
+                        REX::WARN("NO SPAWN EVENT FOUND");
+                        return EventRes::kContinue;
+                    }
+
+                    if (!RandomiserUtil::IsPercentageChanceFloat(Config::Settings::mimic_chance.GetValue())) {
+                        return EventRes::kContinue;
+                    }
+                        
+                     
+                    was_activated = true;
+                    REX::INFO("made it past the returns spawn event type is {}", std::to_underlying(ev_type));
+                    switch (ev_type) {
+
+                    case Utility::SpawnEvent::kDraugr:
+                        DelayedContainerSpawn(activated_object, Forms::Loader::container_spawn_draugr, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
+                        return EventRes::kContinue;
+                        break;
+                    case Utility::SpawnEvent::kUrn:
+                        activated_object->PlaceObjectAtMe(Forms::Loader::spawn_urn_explosion, false);
+                        Utility::ApplyStress(player);
+                        std::jthread([=] {
+                            std::this_thread::sleep_for(std::chrono::seconds(1));
+                            SKSE::GetTaskInterface()->AddTask([=] {
+                                was_activated = false;
+                                REX::INFO("set activated to false");
+                                });
+                            }).detach();
+                        return EventRes::kContinue;
+                        break;
+                    case Utility::SpawnEvent::kDwarven:
+                        DelayedContainerSpawn(activated_object, Forms::Loader::container_spawn_dwarven, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
+                        return EventRes::kContinue;
+                        break;
+                    case Utility::SpawnEvent::kWarlock:
+                        DelayedContainerSpawn(activated_object, Forms::Loader::container_spawn_warlock, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
+                        return EventRes::kContinue;
+                        break;
+                    case Utility::SpawnEvent::kGeneric:
+                        DelayedContainerSpawn(activated_object, Forms::Loader::container_spawn_mimic, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
+                        return EventRes::kContinue;
+                        break;
+                    default:
+                        return EventRes::kContinue;
+                        break;
+                    }
+                }
+            }            
+        }
+
+        return EventRes::kContinue;
+    }
+
+    
 
     void LootActivateEvent::DelayedContainerSpawn(RE::TESObjectREFR* a_eventItem, RE::TESNPC* a_enemyToSpawn, RE::TESBoundObject* a_explosion,
                                                   std::chrono::duration<double> a_threadDelay)
     {
-        const Settings*      settings      = Settings::GetSingleton();
-        bool                 explVis       = settings->toggle_visual_explosion;
-        auto                 util          = Utility::GetSingleton();
+        bool explosion_visuals_active = Config::Settings::visual_explosions_for_spawns_active.GetValue();
+        bool delayed_explosion_active = Config::Settings::delay_explosion_active.GetValue();
         RE::PlayerCharacter* player        = Cache::GetPlayerSingleton();
-        if (!settings->delayed_explosion) {
-            if (explVis) {
+        if (!delayed_explosion_active) {
+            if (explosion_visuals_active) {
                 a_eventItem->PlaceObjectAtMe(a_explosion, false);
             }
         }
         std::jthread([=] {
             std::this_thread::sleep_for(a_threadDelay);
             SKSE::GetTaskInterface()->AddTask([=] {
-                if (settings->delayed_explosion) {
-                    if (explVis) {
+                if (delayed_explosion_active) {
+                    if (explosion_visuals_active) {
                         a_eventItem->PlaceObjectAtMe(a_explosion, false);
                     }
                 }
                 auto mimic = a_eventItem->PlaceObjectAtMe(a_enemyToSpawn, false)->AsReference();
                 mimic->DoMoveToHigh();
                 mimic->MoveTo(a_eventItem);
-                util->RemoveAllItems(a_eventItem, mimic);
-                util->PlayMeme(settings->MemeSound);
-                util->ApplyStress(player);
+                Utility::RemoveAllItems(a_eventItem, mimic);
+                Utility::PlayMeme();
+                Utility::ApplyStress(player);
                 a_eventItem->Disable();
             });
         }).detach();
         std::jthread([=] {
-            std::this_thread::sleep_for(a_threadDelay + 10s);
+            std::this_thread::sleep_for(a_threadDelay + std::chrono::seconds(10));
             SKSE::GetTaskInterface()->AddTask([=] { a_eventItem->Enable(false); });
         }).detach();
         std::jthread([=] {
-            std::this_thread::sleep_for(1s);
-            SKSE::GetTaskInterface()->AddTask([=] { wasActivated = false; });
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            SKSE::GetTaskInterface()->AddTask([=] { was_activated = false; });
         }).detach();
     }
 
     void LootActivateEvent::DelayedNPCSpawn(RE::TESObjectREFR* a_eventItem, RE::TESNPC* a_enemyToSpawn, RE::TESBoundObject* a_explosion,
                                             std::chrono::duration<double> a_threadDelay)
     {
-        const Settings*      settings = Settings::GetSingleton();
-        bool                 explVis  = settings->toggle_visual_explosion;
-        Utility*             util     = Utility::GetSingleton();
+        bool delay_active = Config::Settings::delay_explosion_active.GetValue();
+        bool explosion_visuals = Config::Settings::visual_explosions_for_spawns_active.GetValue();
         RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
 
-        if (!settings->delayed_explosion) {
-            if (explVis) {
+        if (!delay_active) {
+            if (explosion_visuals) {
                 a_eventItem->PlaceObjectAtMe(a_explosion, false);
             }
         }
         std::jthread([=] {
             std::this_thread::sleep_for(a_threadDelay);
             SKSE::GetTaskInterface()->AddTask([=] {
-                if (settings->delayed_explosion) {
-                    if (explVis) {
+                if (delay_active) {
+                    if (explosion_visuals) {
                         a_eventItem->PlaceObjectAtMe(a_explosion, false);
                     }
                 }
                 auto dude = a_eventItem->PlaceObjectAtMe(a_enemyToSpawn, false)->AsReference();
                 dude->DoMoveToHigh();
                 dude->MoveTo(a_eventItem);
-                util->PlayMeme(settings->MemeSound);
-                util->ApplyStress(player);
+                Utility::PlayMeme();
+                Utility::ApplyStress(player);
             });
         }).detach();
         std::jthread([=] {
-            std::this_thread::sleep_for(1s);
-            SKSE::GetTaskInterface()->AddTask([=] { wasActivated = false; });
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+            SKSE::GetTaskInterface()->AddTask([=] { was_activated = false; });
         }).detach();
     }
+    
 } // namespace Events
