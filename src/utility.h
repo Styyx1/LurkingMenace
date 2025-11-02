@@ -243,6 +243,32 @@ struct Utility
         kGeneric = 5,
         kNone = 0,
     };
+
+    inline static std::string_view SpawnEventToString(SpawnEvent ev) {
+        std::string_view ret = "None";
+        switch (ev) {
+        case SpawnEvent::kDraugr:
+            ret = "Draugr";
+            break;
+        case SpawnEvent::kDwarven:
+            ret = "Dwarven";
+            break;
+        case SpawnEvent::kWarlock:
+            ret = "Warlock";
+            break;
+        case SpawnEvent::kUrn:
+            ret = "Urn";
+            break;
+        case SpawnEvent::kGeneric:
+            ret = "Generic";
+            break;
+        default: 
+            break;
+        }
+        return ret;
+
+    }
+
     inline static SpawnEvent GetSpawnEvent(RE::TESForm* reference) {
         using s = Config::Settings;
         if (s::container_spawn_draugr_active.GetValue() && DoesNameContain(reference->GetName(), "draugr")) {

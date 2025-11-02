@@ -14,7 +14,10 @@ fEventSpawnChance = 100.0
 
 [Toggles]
 # Whether mimics can spawn from NPC corpses
-bSpawnFromNPCs = true
+bSpawnFromNpcsGeneric = true
+
+# Whether enemies can spawn from Werewolf corpses
+bNPCSpawnWerewolf = true
 
 # Enable Draugr spawns from containers (e.g., "Draugr Tomb" chests)
 bChestSpawnDraugr = true

@@ -9,7 +9,8 @@ namespace Config {
 
         static inline REX::TOML::F32 mimic_chance{ SECTION_SETTINGS, "fEventSpawnChance", 50.0f };
 
-        static inline REX::TOML::Bool spawn_from_npcs{ SECTION_TOGGLES, "bSpawnFromNPCs", true };
+        static inline REX::TOML::Bool npc_spawn_generic{ SECTION_TOGGLES, "bSpawnFromNpcsGeneric", true };
+        static inline REX::TOML::Bool npc_spawn_werewolf{ SECTION_TOGGLES, "bNPCSpawnWerewolf", true };
         static inline REX::TOML::Bool container_spawn_draugr_active{ SECTION_TOGGLES, "bChestSpawnDraugr", true };
         static inline REX::TOML::Bool container_spawn_dwarven_active{ SECTION_TOGGLES, "bChestSpawnDwarven", true };
         static inline REX::TOML::Bool container_spawn_warlock_active{ SECTION_TOGGLES, "bChestSpawnWarlock", true };
@@ -47,7 +48,7 @@ namespace Config {
                 toml->Save();
         }
     };
-
+#undef ERROR
     struct JSONLoader : public REX::Singleton<JSONLoader>
     {
         using json = nlohmann::json;

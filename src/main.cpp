@@ -2,6 +2,7 @@
 #include "settings.h"
 #include "formloader.h"
 #include "events.h"
+#include "ui.h"
 
 
 void Listener(SKSE::MessagingInterface::Message *a_msg) noexcept
@@ -25,6 +26,6 @@ SKSEPluginLoad(const SKSE::LoadInterface *a_skse)
 	Cache::CacheAddLibAddresses();
 	SKSE::GetMessagingInterface()->RegisterListener(Listener);
 	Config::Settings::GetSingleton()->UpdateSettings();
-
+	UI::Register();
 	return true;
 }

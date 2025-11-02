@@ -33,7 +33,7 @@ namespace Events
     void LootActivateEvent::ProcessNPCEvent(RE::Actor* actor)
     {
         if (actor && actor->IsDead()) {
-            if (actor->IsInFaction(Forms::Loader::werewolf_faction)) {
+            if (Config::Settings::npc_spawn_werewolf.GetValue() && actor->IsInFaction(Forms::Loader::werewolf_faction)) {
                 if (RandomiserUtil::IsPercentageChanceFloat(Config::Settings::mimic_chance.GetValue())) {
                     was_activated = true;
                     DelayedNPCSpawn(actor, Forms::Loader::npc_spawn_werewolf, Forms::Loader::spawn_visual_explosion, Utility::GetTimer());
@@ -70,7 +70,7 @@ namespace Events
         std::string nameOfCont = a_event->objectActivated->GetName();
 
         if(!Utility::isAnyException(activated_object)){
-            if (Settings::spawn_from_npcs.GetValue() && activated_object->Is(RE::FormType::ActorCharacter)) {
+            if (Settings::npc_spawn_generic.GetValue() && activated_object->Is(RE::FormType::ActorCharacter)) {
                 RE::Actor* dead_guy = a_event->objectActivated->As<RE::Actor>();
                 // Only do stuff when looking at dead actors
                 if (dead_guy && dead_guy->IsDead()) {
@@ -78,17 +78,14 @@ namespace Events
                 }
                 return EventRes::kContinue;
             }
-            REX::INFO("no npc event");
+            
             bool is_player_owned = activated_object->GetActorOwner() == player->GetActorBase();
-            REX::INFO("is player owned bool is {} and is locked bool is {}", is_player_owned, isLocked);
-            if (activated_object->GetBaseObject()->Is(RE::FormType::Container) && !is_player_owned && !isLocked) {
-                REX::INFO("we're inside container events. yay");
+            
+            if (activated_object->GetBaseObject()->Is(RE::FormType::Container) && !is_player_owned && !isLocked) {                
                 if(Settings::debug_logging.GetValue())
                     Utility::LogOwnership(activated_object);
                 if (Settings::GetSingleton()->ContainerEventsActive()) {
-                    auto ev_type = Utility::GetSpawnEvent(activated_object);
-                    REX::INFO("starting to look up SpawnEvent");
-
+                    auto ev_type = Utility::GetSpawnEvent(activated_object);  
                     if (ev_type == Utility::SpawnEvent::kNone) {
                         REX::WARN("NO SPAWN EVENT FOUND");
                         return EventRes::kContinue;
@@ -97,10 +94,9 @@ namespace Events
                     if (!RandomiserUtil::IsPercentageChanceFloat(Config::Settings::mimic_chance.GetValue())) {
                         return EventRes::kContinue;
                     }
-                        
-                     
+
                     was_activated = true;
-                    REX::INFO("made it past the returns spawn event type is {}", std::to_underlying(ev_type));
+                    REX::INFO("made it past the returns spawn event type is {}", Utility::SpawnEventToString(ev_type));
                     switch (ev_type) {
 
                     case Utility::SpawnEvent::kDraugr:

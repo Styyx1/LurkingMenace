@@ -1,0 +1,268 @@
+#include "ui.h"
+
+namespace UI {
+
+	bool Register()
+	{
+		if (!SKSEMenuFramework::IsInstalled()) {
+			return false;
+		}
+		SKSEMenuFramework::SetSection(MenuTitles::ModName);
+		SKSEMenuFramework::AddSectionItem(MenuTitles::Settings, Settings::RenderSettings);
+		SKSEMenuFramework::AddSectionItem(MenuTitles::Toggles, Toggles::RenderToggles);
+		RestoreSettingsFromConfig(true, true);
+
+		return true;
+	}
+
+	void RestoreSettingsFromConfig(bool settings, bool toggles)
+	{
+		using s = Config::Settings;
+		if (settings) {
+			Settings::spawn_chance_temp = s::mimic_chance.GetValue();
+			Settings::use_delayed_explosion_temp = s::delay_explosion_active.GetValue();
+			Settings::use_time_ranges_temp = s::delay_time_range_active.GetValue();
+			Settings::delay_time_without_delay_temp = s::delay_timer_seconds.GetValue();
+			Settings::delay_time_range_minimum_temp = s::delay_time_min.GetValue();
+			Settings::delay_time_range_maximum_temp = s::delay_time_max.GetValue();
+		}
+		if (toggles) {
+			Toggles::toggle_npc_spawns_temp = s::npc_spawn_generic.GetValue();
+			Toggles::toggle_werewolf_spawns_temp = s::npc_spawn_werewolf.GetValue();
+			Toggles::toggle_draugr_temp = s::container_spawn_draugr_active.GetValue();
+			Toggles::toggle_dwarven_temp = s::container_spawn_dwarven_active.GetValue();
+			Toggles::toggle_warlock_temp = s::container_spawn_warlock_active.GetValue();
+			Toggles::toggle_mimic_temp = s::container_spawn_mimic_active.GetValue();
+			Toggles::toggle_urn_temp = s::explosion_spawn_urn.GetValue();
+			Toggles::toggle_meme_sound_temp = s::meme_sound_active.GetValue();
+			Toggles::toggle_explosion_visuals_temp = s::visual_explosions_for_spawns_active.GetValue();
+		}
+	}
+
+	void RestoreDefaultSettings(bool settings, bool toggles)
+	{
+		using s = Config::Settings;
+		if (settings) {
+			Settings::spawn_chance_temp = 10.0;			
+			Settings::use_delayed_explosion_temp = true;
+			Settings::use_time_ranges_temp = true;
+			Settings::delay_time_without_delay_temp = 2.5;			
+			Settings::delay_time_range_minimum_temp = 1.0;			
+			Settings::delay_time_range_maximum_temp = 10.0;
+
+			s::mimic_chance.SetValue(Settings::spawn_chance_temp);
+			s::delay_timer_seconds.SetValue(Settings::delay_time_without_delay_temp);			
+			s::delay_explosion_active.SetValue(Settings::use_delayed_explosion_temp);
+			s::delay_time_range_active.SetValue(Settings::use_time_ranges_temp);
+			s::delay_time_min.SetValue(Settings::delay_time_range_minimum_temp);
+			s::delay_time_max.SetValue(Settings::delay_time_range_maximum_temp);
+		}
+		if (toggles) {
+			Toggles::toggle_npc_spawns_temp = true;
+			Toggles::toggle_werewolf_spawns_temp = true;
+			Toggles::toggle_draugr_temp = true;
+			Toggles::toggle_dwarven_temp = true;
+			Toggles::toggle_warlock_temp = true;
+			Toggles::toggle_mimic_temp = true;
+			Toggles::toggle_urn_temp = true;
+			Toggles::toggle_meme_sound_temp = false;
+			Toggles::toggle_explosion_visuals_temp = true;
+
+			s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
+			s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
+			s::npc_spawn_werewolf.SetValue(Toggles::toggle_werewolf_spawns_temp);
+			s::container_spawn_draugr_active.SetValue(Toggles::toggle_draugr_temp);
+			s::container_spawn_dwarven_active.SetValue(Toggles::toggle_dwarven_temp);
+			s::container_spawn_warlock_active.SetValue(Toggles::toggle_warlock_temp);
+			s::container_spawn_mimic_active.SetValue(Toggles::toggle_mimic_temp);
+			s::explosion_spawn_urn.SetValue(Toggles::toggle_urn_temp);
+			s::meme_sound_active.SetValue(Toggles::toggle_meme_sound_temp);
+			s::visual_explosions_for_spawns_active.SetValue(Toggles::toggle_explosion_visuals_temp);
+		}
+
+		Config::Settings::GetSingleton()->UpdateSettings(true);
+	}
+
+	void HelpMarker(const char* desc)
+	{
+		ImGui::TextDisabled("(?)");
+		if (ImGui::BeginItemTooltip()) {
+			ImGui::PushTextWrapPos(ImGui::GetFontSize() * 35.0f);
+			ImGui::TextUnformatted(desc);
+			ImGui::PopTextWrapPos();
+			ImGui::EndTooltip();
+		}
+	}
+
+	namespace Settings {
+		void __stdcall RenderSettings()
+		{
+			using s = Config::Settings;
+
+			FontAwesome::PushSolid();
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Settings.c_str());
+
+			ImGui::SetNextItemWidth(300.f);
+			if (ImGui::SliderFloat(Label::spawn_chance.c_str(), &spawn_chance_temp, 0.0, 100.0)) {
+				s::mimic_chance.SetValue(spawn_chance_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::spawn_chance.c_str());
+
+			if (ImGui::Checkbox(Label::use_delay_explosion_toggle.c_str(), &use_delayed_explosion_temp)) {
+				s::delay_explosion_active.SetValue(use_delayed_explosion_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::use_delay_explosion_toggle.c_str());
+			ImGui::SameLine();
+			if (ImGui::Checkbox(Label::use_delay_time_ranges.c_str(), &use_time_ranges_temp)) {
+				s::delay_time_range_active.SetValue(use_time_ranges_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::use_delay_time_ranges.c_str());
+			ImGui::NewLine();
+
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Timers.c_str());
+
+			ImGui::SetNextItemWidth(300.f);
+			if (ImGui::SliderFloat(Label::delay_time_without_range.c_str(), &delay_time_without_delay_temp, 0.0f, 20.0f)) {
+				s::delay_timer_seconds.SetValue(delay_time_without_delay_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::delay_time_without_range.c_str());
+
+
+			ImGui::SetNextItemWidth(300.f);
+			if (ImGui::SliderFloat(Label::delay_time_min.c_str(), &delay_time_range_minimum_temp, 0.0f, delay_time_range_maximum_temp)) {
+				s::delay_timer_seconds.SetValue(delay_time_range_minimum_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::delay_time_min.c_str());
+
+
+			ImGui::SetNextItemWidth(300.f);
+			if (ImGui::SliderFloat(Label::delay_time_max.c_str(), &delay_time_range_maximum_temp, delay_time_range_minimum_temp, 25.0f)) {
+				s::delay_timer_seconds.SetValue(delay_time_range_maximum_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::delay_time_max.c_str());
+			
+			//Save Config and Default Settings
+			ImGui::NewLine();
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f),MenuTitles::System.c_str());
+			if (ImGui::Button(MenuTitles::Save.c_str())) {
+				Config::Settings::GetSingleton()->UpdateSettings(true);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button(MenuTitles::Restore.c_str())) {
+				RestoreDefaultSettings(true, false);
+			}
+			FontAwesome::Pop();
+
+		}
+	}
+	namespace Toggles {
+		void __stdcall RenderToggles()
+		{
+			using s = Config::Settings;
+			using namespace Toggles;
+
+			FontAwesome::PushSolid();
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), "Spawn Toggles");
+
+			ImGui::NewLine();
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), "Misc Toggles");
+			// --- Meme Sound ---
+			if (ImGui::Checkbox(Label::toggle_meme_sound.c_str(), &toggle_meme_sound_temp)) {
+				s::meme_sound_active.SetValue(toggle_meme_sound_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_meme_sound.c_str());
+
+			ImGui::SameLine();
+			// --- Explosion Visuals ---
+			if (ImGui::Checkbox(Label::toggle_explosion_visuals.c_str(), &toggle_explosion_visuals_temp)) {
+				s::visual_explosions_for_spawns_active.SetValue(toggle_explosion_visuals_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_explosion_visuals.c_str());
+
+			ImGui::NewLine();
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Spawns.c_str());
+
+			ImGui::Text("NPC Spawns");
+
+			// --- NPC Spawns ---
+			if (ImGui::Checkbox(Label::toggle_npc_spawns.c_str(), &toggle_npc_spawns_temp)) {
+				s::npc_spawn_generic.SetValue(toggle_npc_spawns_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_npc_spawns.c_str());
+
+			// --- Werewolf Spawns ---
+			ImGui::SameLine();
+			if (ImGui::Checkbox(Label::toggle_werewolf_spawns.c_str(), &toggle_werewolf_spawns_temp)) {
+				 s::npc_spawn_werewolf.SetValue(toggle_werewolf_spawns_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_werewolf_spawns.c_str());
+
+			ImGui::Text("Containers");
+
+			// --- Draugr Spawns ---
+			if (ImGui::Checkbox(Label::toggle_draugr_spawns.c_str(), &toggle_draugr_temp)) {
+				s::container_spawn_draugr_active.SetValue(toggle_draugr_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_draugr_spawns.c_str());
+			ImGui::SameLine();
+			// --- Dwarven Spawns ---
+			if (ImGui::Checkbox(Label::toggle_dwarven_spawns.c_str(), &toggle_dwarven_temp)) {
+				s::container_spawn_dwarven_active.SetValue(toggle_dwarven_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_dwarven_spawns.c_str());
+
+
+
+			// --- Warlock Spawns ---
+			if (ImGui::Checkbox(Label::toggle_warlock_spawns.c_str(), &toggle_warlock_temp)) {
+				s::container_spawn_warlock_active.SetValue(toggle_warlock_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_warlock_spawns.c_str());
+			ImGui::SameLine();
+			// --- Mimic Spawns ---
+			if (ImGui::Checkbox(Label::toggle_mimic_spawns.c_str(), &toggle_mimic_temp)) {
+				s::container_spawn_mimic_active.SetValue(toggle_mimic_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_mimic_spawns.c_str());
+
+
+
+			// --- Urn Explosions ---
+			if (ImGui::Checkbox(Label::toggle_urn_spawns.c_str(), &toggle_urn_temp)) {
+				s::explosion_spawn_urn.SetValue(toggle_urn_temp);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_urn_spawns.c_str());
+
+			
+
+			//Save Config and Default Settings
+			ImGui::NewLine();
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::System.c_str());
+			if (ImGui::Button(MenuTitles::Save.c_str())) {
+				Config::Settings::GetSingleton()->UpdateSettings(true);
+			}
+			ImGui::SameLine();
+			if (ImGui::Button(MenuTitles::Restore.c_str())) {
+				RestoreDefaultSettings(false, true);
+			}
+			FontAwesome::Pop();
+		}
+
+	}
+	
+}
