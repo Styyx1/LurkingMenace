@@ -56,7 +56,7 @@ struct Utility
             return false;
 
         if (Config::JSONLoader::exception_cells.contains(cell)) {
-            REX::DEBUG("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID());
+            REX::DEBUG(std::format("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID()));
             return true;
         }
         else {
@@ -69,7 +69,7 @@ struct Utility
         RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
 
         if (player->GetCurrentLocation()) {
-            REX::DEBUG("location is {}", player->GetParentCell()->GetFormEditorID());
+            REX::DEBUG(std::format("location is {}", player->GetParentCell()->GetFormEditorID()));
             return player->GetCurrentLocation()->HasAnyKeywordByEditorID(Config::JSONLoader::exception_keywords);
         }
         else {
@@ -92,7 +92,7 @@ struct Utility
 
     inline static bool isAnyException(RE::TESObjectREFR* form)
     {
-        if (IsRestrictedForm(form)) {
+        if (IsRestrictedForm(form) || IsRestrictedForm(form->GetBaseObject())) {
             REX::DEBUG("Is restricted form");
             return true;
         }
@@ -117,7 +117,7 @@ struct Utility
         using set = Config::Settings;
         if (set::delay_time_range_active.GetValue()) {
             auto delay = RandomiserUtil::GetRandomDouble(set::delay_time_min.GetValue(), set::delay_time_max.GetValue());
-            REX::DEBUG("random time delay is {}", delay);
+            REX::DEBUG(std::format("random time delay is {}", delay));
             set::thread_delay = std::chrono::duration<double>(delay);
             return set::thread_delay;
         }
@@ -133,7 +133,7 @@ struct Utility
         for (auto& items : inv_map) {
             if (items.first->GetFormType() != RE::FormType::LeveledItem) {
                 a_refToRemoveFrom->GetHandle().get()->RemoveItem(items.first, items.second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, a_refToGiveItems);
-                REX::DEBUG("removed {}", items.first->GetName());
+                REX::DEBUG(std::format("removed {}", items.first->GetName()));
             }
             else
                 return;
@@ -181,7 +181,7 @@ struct Utility
     {
         RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
         MagicUtil::ApplySpell(player, target, Forms::Loader::stress_spell);
-        REX::DEBUG("applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName());
+        REX::DEBUG(std::format("applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName()));
     }
 
     enum class SpawnEvent : uint32_t {
@@ -257,9 +257,17 @@ struct Utility
                 if (Config::Settings::npc_spawn_werewolf.GetValue() && actor->IsInFaction(Forms::Loader::werewolf_faction)) {
                     return SpawnEvent::kNPCWerewolf;
                 }
-                if (Config::Settings::npc_spawn_vampire.GetValue() && ActorUtil::IsVampire(actor)) {
-                    REX::INFO("this is a vamp");
+                if (Config::Settings::npc_spawn_vampire.GetValue() && ActorUtil::IsVampire(actor)) {       
                     return SpawnEvent::kNPCVampire;
+                }
+                if (ActorUtil::IsUndead(actor)) {
+                    return SpawnEvent::kNPCUndead;
+                }
+                if (actor && actor->GetParentCell() && Utility::LocationCheck("LocTypeDwarvenAutomatons")) {
+                    return SpawnEvent::kNPCDwarven;
+                }
+                if (actor->IsDragon()) {
+                    return SpawnEvent::kNPCDragon;
                 }
 
                 if (Config::Settings::npc_spawn_generic.GetValue()) {
@@ -270,7 +278,7 @@ struct Utility
         return SpawnEvent::kNone;
     }
 
-    inline static RE::TESNPC* GetRandomNPCFromList(std::vector<RE::TESNPC*>& vec, RE::TESNPC* a_fallback) {
+    inline static RE::TESNPC* GetRandomNPCFromList(std::vector<RE::TESNPC*>& vec, RE::TESNPC* a_fallback = Forms::Loader::npc_spawn_generic) {
         if (vec.empty())
             return a_fallback;
         if (!Config::Settings::spawn_from_formlist.GetValue())
@@ -294,7 +302,15 @@ struct Utility
         case SpawnEvent::kNPCWerewolf:
             return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_werefolf,Forms::Loader::npc_spawn_werewolf);
         case SpawnEvent::kNPCGeneric: 
-            return GetRandomNPCFromList(Forms::Loader::npc_spawn_generic_vec, Forms::Loader::npc_spawn_generic);                                         
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_generic_vec);
+        case SpawnEvent::kNPCVampire:
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_vampire);
+        case SpawnEvent::kNPCUndead:
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_undead);
+        case SpawnEvent::kNPCDwarven:
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_dwarven);
+        case SpawnEvent::kNPCDragon:
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_dragon);
         default:
             return nullptr;
         }

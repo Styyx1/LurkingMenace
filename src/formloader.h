@@ -59,7 +59,10 @@ namespace Forms {
         }
 
         void LogForm(RE::TESForm* a_form) {
-            REX::INFO("Form {} is the ID of {}", typeid(a_form).name(), a_form->GetFormID());
+            REX::DEBUG(std::format("Form {} is the ID of {}", typeid(a_form).name(), a_form->GetFormID()));
+        }
+        void DebugVecSize(std::string name, std::vector<RE::TESNPC*>& vec) {
+            REX::DEBUG(std::format("vector {} size is: {}", name, vec.size()));
         }
 
         inline void LoadForms(bool with_logging) {
@@ -95,16 +98,36 @@ namespace Forms {
             cont_spawn_formlist_warlock = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_WARLOCK, MIMIC_MOD_NAME);
 
             FormlistToVector(npc_spawn_formlist_generic, npc_spawn_generic_vec);
+            DebugVecSize("npc_spawn_generic_vec", npc_spawn_generic_vec);
+
             FormlistToVector(npc_spawn_formlist_werewolf, npc_spawn_vec_werefolf);
+            DebugVecSize("npc_spawn_vec_werefolf", npc_spawn_vec_werefolf);
+
             FormlistToVector(npc_spawn_formlist_vampire, npc_spawn_vec_vampire);
+            DebugVecSize("npc_spawn_vec_vampire", npc_spawn_vec_vampire);
+
             FormlistToVector(npc_spawn_formlist_dwarven, npc_spawn_vec_dwarven);
+            DebugVecSize(std::string("npc_spawn_vec_dwarven"), npc_spawn_vec_dwarven);
+
             FormlistToVector(npc_spawn_formlist_undead, npc_spawn_vec_undead);
+            DebugVecSize(std::string("npc_spawn_vec_undead"), npc_spawn_vec_undead);
+
             FormlistToVector(npc_spawn_formlist_dragon, npc_spawn_vec_dragon);
+            DebugVecSize(std::string("npc_spawn_vec_dragon"), npc_spawn_vec_dragon);
+
 
             FormlistToVector(cont_spawn_formlist_generic, cont_spawn_vec_generic);
+            DebugVecSize(std::string("cont_spawn_vec_generic"), cont_spawn_vec_generic);
+
             FormlistToVector(cont_spawn_formlist_draugr, cont_spawn_vec_draugr);
+            DebugVecSize(std::string("cont_spawn_vec_draugr"), cont_spawn_vec_draugr);
+
             FormlistToVector(cont_spawn_formlist_dwarven, cont_spawn_vec_dwarven);
+            DebugVecSize(std::string("cont_spawn_vec_dwarven"), cont_spawn_vec_dwarven);
+
             FormlistToVector(cont_spawn_formlist_warlock, cont_spawn_vec_warlock);
+            DebugVecSize(std::string("cont_spawn_vec_warlock"), cont_spawn_vec_warlock);
+
 
             if (with_logging) {
                 LogForm(spawn_visual_explosion);

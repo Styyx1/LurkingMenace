@@ -125,9 +125,7 @@ namespace Events
                 if (delay_active && explosion_visuals) {
                     source->PlaceObjectAtMe(explosion, false);
                 }
-                
-
-                auto spawned_npc = Utility::PapyrusPlaceAtMe(source, npc_to_spawn, true, false);;
+                    auto spawned_npc = Utility::PapyrusPlaceAtMe(source, npc_to_spawn, true, false);;
                 spawned_npc->DoMoveToHigh();
                 spawned_npc->MoveTo(source);
 

@@ -29,6 +29,7 @@ namespace Config {
 
         static inline std::chrono::duration<double> thread_delay;
 
+
         inline bool ContainerEventsActive() {
 
             const auto values = {
@@ -48,6 +49,10 @@ namespace Config {
                 toml->Load();
             else
                 toml->Save();
+            if (debug_logging.GetValue()) {    
+                REX::DEBUG("call from debug");
+            }
+
         }
     };
 #undef ERROR
