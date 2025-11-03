@@ -152,6 +152,7 @@ namespace UI {
 			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f),MenuTitles::System.c_str());
 			if (ImGui::Button(MenuTitles::Save.c_str())) {
 				Config::Settings::GetSingleton()->UpdateSettings(true);
+				REX::INFO("spawn chance is set to: {}", Config::Settings::mimic_chance.GetValue());
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(MenuTitles::Restore.c_str())) {

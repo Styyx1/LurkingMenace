@@ -22,9 +22,9 @@ struct Utility
     inline static bool HasRestrictedName(RE::TESObjectREFR* form) {
 
         std::string res_name = form->GetName();
-        REX::INFO("name is {}", form->GetName());
+        REX::DEBUG("name is {}", form->GetName());
         if (res_name.empty()) {
-            REX::INFO("no name found");
+            REX::DEBUG("no name found");
             return false;
         }
 
@@ -32,7 +32,7 @@ struct Utility
         std::ranges::transform(lowered, lowered.begin(), ::tolower);
 
         if (std::count(Config::JSONLoader::exception_names.begin(), Config::JSONLoader::exception_names.end(), lowered)) {
-            REX::INFO("{} is a restricted name", res_name);
+            REX::DEBUG("{} is a restricted name", res_name);
             return true;
         }
         else
@@ -55,7 +55,7 @@ struct Utility
             return false;
 
         if (Config::JSONLoader::exception_cells.contains(cell)) {
-            REX::INFO("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID());
+            REX::DEBUG("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID());
             return true;
         }
         else {
@@ -68,22 +68,22 @@ struct Utility
         RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
 
         if (player->GetCurrentLocation()) {
-            REX::INFO("location is {}", player->GetParentCell()->GetFormEditorID());
+            REX::DEBUG("location is {}", player->GetParentCell()->GetFormEditorID());
             return player->GetCurrentLocation()->HasAnyKeywordByEditorID(Config::JSONLoader::exception_keywords);
         }
         else {
-            REX::INFO("no location found");
+            REX::DEBUG("no location found");
             return false;
         }
     }
 
     inline static void LogOwnership(RE::TESObjectREFR* obj) {
         if (obj->GetActorOwner()) {
-            REX::INFO("owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName());
+            REX::DEBUG("owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName());
             return;
         }
         else {
-            REX::INFO("object {} has no owner actor", obj->GetName());
+            REX::DEBUG("object {} has no owner actor", obj->GetName());
             return;
         }
 
@@ -92,19 +92,19 @@ struct Utility
     inline static bool isAnyException(RE::TESObjectREFR* form)
     {
         if (IsRestrictedForm(form)) {
-            REX::INFO("Is restricted form");
+            REX::DEBUG("Is restricted form");
             return true;
         }
         if (isRestrictedCell()) {
-            REX::INFO("restricted cell");
+            REX::DEBUG("restricted cell");
             return true;
         }
         if (isRestrictedLoc()) {
-            REX::INFO("restricted location type keyword");
+            REX::DEBUG("restricted location type keyword");
             return true;
         }
         if (HasRestrictedName(form)) {
-            REX::INFO("Has restricted name");
+            REX::DEBUG("Has restricted name");
             return true;
         }
         else
@@ -116,7 +116,7 @@ struct Utility
         using set = Config::Settings;
         if (set::delay_time_range_active.GetValue()) {
             auto delay = RandomiserUtil::GetRandomDouble(set::delay_time_min.GetValue(), set::delay_time_max.GetValue());
-            REX::INFO("random time delay is {}", delay);
+            REX::DEBUG("random time delay is {}", delay);
             set::thread_delay = std::chrono::duration<double>(delay);
             return set::thread_delay;
         }
@@ -125,61 +125,13 @@ struct Utility
             return set::thread_delay;
         }
     }
-
-    
-
-    
-
-
-    /*bool isRestrictedContainer(std::string a_contEDID)
-    {
-        auto                     settings   = Settings::GetSingleton();
-        std::vector<std::string> exceptions
-
-     * * =
-     * settings->JSONSettings["ContainerIDs"];        
-
-        if (std::count(exceptions.begin(), exceptions.end(), a_contEDID.c_str())) {
- REX::INFO("{}
-     * is
-     * a
-     * restricted container", a_contEDID);
-            return true;
-        }
-        else {
-            REX::INFO("{} is not restricted", a_contEDID);
- return
-
-     *
-     * * false;
-        }
-    }
-
-    bool isRestrictedNameOrID(std::string a_name, std::string a_contEDID)
-    {
-        if (ExceptionName(a_name)) {
-            return true;
- }
-
-
-     * * if
-     * (isRestrictedContainer(a_contEDID)) {
-            return true;
-        }
-        else {
-            return false;
-        }
-    }*/
-
-    
-
     inline static void RemoveAllItems(RE::TESObjectREFR* a_refToRemoveFrom, RE::TESObjectREFR* a_refToGiveItems)
     {
         auto inv_map = a_refToRemoveFrom->GetHandle().get()->GetInventoryCounts();
         for (auto& items : inv_map) {
             if (items.first->GetFormType() != RE::FormType::LeveledItem) {
                 a_refToRemoveFrom->GetHandle().get()->RemoveItem(items.first, items.second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, a_refToGiveItems);
-                REX::INFO("removed {}", items.first->GetName());
+                REX::DEBUG("removed {}", items.first->GetName());
             }
             else
                 return;
@@ -202,10 +154,10 @@ struct Utility
 
         if (player->GetCurrentLocation() != nullptr) {
             return player->GetCurrentLocation()->HasKeywordString(locKeyword);
-            // REX::INFO("current location is: {}", player->GetCurrentLocation()->GetName());
+            // REX::DEBUG("current location is: {}", player->GetCurrentLocation()->GetName());
         }
         else {
-            REX::INFO("no location found");
+            REX::DEBUG("no location found");
             return false;
         }
     }
@@ -216,14 +168,12 @@ struct Utility
 
         if (player->GetCurrentLocation() != nullptr) {
             if (player->GetCurrentLocation()->HasKeywordString("LocTypePlayerHouse")) {
-                // REX::INFO("current location is: {}", player->GetCurrentLocation()->GetName());
                 return true;
             }
             else
                 return false;
         }
         else {
-            // REX::INFO("current location is: {}", player->GetCurrentLocation()->GetName());
             return false;
         }
     }
@@ -232,7 +182,7 @@ struct Utility
     {
         RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
         MagicUtil::ApplySpell(player, target, Forms::Loader::stress_spell);
-        REX::INFO("applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName());
+        REX::DEBUG("applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName());
     }
 
     enum class SpawnEvent : uint32_t {
@@ -241,54 +191,85 @@ struct Utility
         kWarlock = 3,
         kUrn = 4,
         kGeneric = 5,
+        kNPCGeneric = 6,
+        kNPCWerewolf = 7,
         kNone = 0,
     };
 
     inline static std::string_view SpawnEventToString(SpawnEvent ev) {
-        std::string_view ret = "None";
         switch (ev) {
         case SpawnEvent::kDraugr:
-            ret = "Draugr";
-            break;
+            return "Draugr";
         case SpawnEvent::kDwarven:
-            ret = "Dwarven";
-            break;
+            return "Dwarven";
         case SpawnEvent::kWarlock:
-            ret = "Warlock";
-            break;
+            return "Warlock";
         case SpawnEvent::kUrn:
-            ret = "Urn";
-            break;
+            return "Urn";
         case SpawnEvent::kGeneric:
-            ret = "Generic";
-            break;
+            return "Generic";
+        case SpawnEvent::kNPCGeneric:
+            return "Generic NPC";
+        case SpawnEvent::kNPCWerewolf:
+            return "Werewolf";
         default: 
-            break;
+            return "NONE";
         }
-        return ret;
-
     }
 
-    inline static SpawnEvent GetSpawnEvent(RE::TESForm* reference) {
+    inline static SpawnEvent GetSpawnEvent(RE::TESObjectREFR* reference) {
         using s = Config::Settings;
-        if (s::container_spawn_draugr_active.GetValue() && DoesNameContain(reference->GetName(), "draugr")) {
-            return SpawnEvent::kDraugr;
-        }
-        if (s::container_spawn_dwarven_active.GetValue() && LocationCheck("LocTypeDwarvenAutomatons")) {
-            return SpawnEvent::kDwarven;
-        }
-        if (s::container_spawn_warlock_active.GetValue() && (LocationCheck("LocTypeWarlockLair") || LocationCheck("LocTypeVampireLair"))) {
-            return SpawnEvent::kWarlock;
-        }
-        RE::PlayerCharacter* const& player = RE::PlayerCharacter::GetSingleton();
-        if (s::explosion_spawn_urn.GetValue() && DoesNameContain(reference->GetName(), "urn") && CellUtil::IsDungeon(ActorUtil::GetPlayerCell(player))) {
-            return SpawnEvent::kUrn;
-        }
-        if (s::container_spawn_mimic_active.GetValue()) {
-            return SpawnEvent::kGeneric;
-        }
 
+        if (reference->GetBaseObject()->Is(RE::FormType::Container)) {
+            if (s::container_spawn_draugr_active.GetValue() && DoesNameContain(reference->GetName(), "draugr")) {
+                return SpawnEvent::kDraugr;
+            }
+            if (s::container_spawn_dwarven_active.GetValue() && LocationCheck("LocTypeDwarvenAutomatons")) {
+                return SpawnEvent::kDwarven;
+            }
+            if (s::container_spawn_warlock_active.GetValue() && (LocationCheck("LocTypeWarlockLair") || LocationCheck("LocTypeVampireLair"))) {
+                return SpawnEvent::kWarlock;
+            }
+            RE::PlayerCharacter* const& player = RE::PlayerCharacter::GetSingleton();
+            if (s::explosion_spawn_urn.GetValue() && DoesNameContain(reference->GetName(), "urn") && CellUtil::IsDungeon(ActorUtil::GetPlayerCell(player))) {
+                return SpawnEvent::kUrn;
+            }
+            if (s::container_spawn_mimic_active.GetValue()) {
+                return SpawnEvent::kGeneric;
+            }
+        }       
+
+        //NPC
+        if (reference->Is(RE::FormType::ActorCharacter)) {
+            auto actor = reference->As<RE::Actor>();
+            if (actor){
+                if (Config::Settings::npc_spawn_werewolf.GetValue() && actor->IsInFaction(Forms::Loader::werewolf_faction)) {
+                    return SpawnEvent::kNPCWerewolf;
+                }
+                if (Config::Settings::npc_spawn_generic.GetValue()) {
+                    return SpawnEvent::kNPCGeneric;
+                }
+            }
+        }
         return SpawnEvent::kNone;
+    }
 
+    inline static RE::TESNPC* GetNPCFromSpawnType(SpawnEvent type) {
+        switch (type) {
+        case SpawnEvent::kDraugr:
+            return Forms::Loader::container_spawn_draugr;
+        case SpawnEvent::kDwarven:
+            return Forms::Loader::container_spawn_dwarven;
+        case SpawnEvent::kWarlock:
+            return Forms::Loader::container_spawn_warlock;
+        case SpawnEvent::kGeneric:
+            return Forms::Loader::container_spawn_mimic;
+        case SpawnEvent::kNPCWerewolf:
+            return Forms::Loader::npc_spawn_werewolf;
+        case SpawnEvent::kNPCGeneric:
+            return Forms::Loader::npc_spawn_generic;
+        default:
+            return nullptr;
+        }
     }
 };

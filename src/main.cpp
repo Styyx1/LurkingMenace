@@ -11,10 +11,7 @@ void Listener(SKSE::MessagingInterface::Message *a_msg) noexcept
 	case SKSE::MessagingInterface::kDataLoaded:
 		Forms::Loader::GetSingleton()->LoadForms(Config::Settings::debug_logging.GetValue());
 		Config::JSONLoader::LoadExceptionsFromFolder();
-		auto manager = Events::LootActivateEvent::GetSingleton();
-		manager->RegisterActivateEvents();
-		auto menuManager = Events::MenuEvent::GetSingleton();
-		menuManager->RegisterMenuEvents();
+		Events::RegisterEvents();
 		break;
 	}
 }

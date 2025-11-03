@@ -17,13 +17,9 @@ namespace Events
                 REX::INFO("Registered {}", typeid(RE::TESActivateEvent).name());
             }
         }
-        inline static bool was_activated{ false };
 
-        void ProcessNPCEvent(RE::Actor* actor);
-        void ProcessContainerEvent(const RE::TESActivateEvent* a_event);
-
-        void DelayedContainerSpawn(RE::TESObjectREFR* a_eventItem, RE::TESNPC* a_enemyToSpawn, RE::TESBoundObject* a_explosion, std::chrono::duration<double> a_threadDelay);
-        void DelayedNPCSpawn(RE::TESObjectREFR* a_eventItem, RE::TESNPC* a_enemyToSpawn, RE::TESBoundObject* a_explosion, std::chrono::duration<double> a_threadDelay);
+        inline static TimerUtil::Timer check_timer;
+        void DelayedSpawn(RE::TESObjectREFR* source, RE::TESNPC* npc_to_spawn, RE::TESBoundObject* explosion, std::chrono::duration<double> delay,bool disable_source = false);
     };
 
     struct MenuEvent : public REX::Singleton<MenuEvent>, public RE::BSTEventSink<RE::MenuOpenCloseEvent>
