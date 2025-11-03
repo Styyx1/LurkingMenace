@@ -25,4 +25,16 @@ namespace MOD {
     inline constexpr i32 MEME_SOUND = 0x810;
     inline constexpr i32 STRESS_SPELL = 0x816;
     inline constexpr i32 WEREWOLF_FACTION = 0x43594;
+    // formlists
+    inline constexpr i32 NPC_SPAWN_LIST_GENERIC = 0x818;
+    inline constexpr i32 NPC_SPAWN_LIST_WEREWOLF = 0x81A;
+    inline constexpr i32 NPC_SPAWN_LIST_VAMPIRE = 0x81B;
+    inline constexpr i32 NPC_SPAWN_LIST_DWARVEN = 0x81C;
+    inline constexpr i32 NPC_SPAWN_LIST_UNDEAD = 0x81D;
+    inline constexpr i32 NPC_SPAWN_LIST_DRAGON = 0x81E;
+    inline constexpr i32 CONTAINER_SPAWN_LIST_GENERIC = 0x81F;
+    inline constexpr i32 CONTAINER_SPAWN_LIST_DRAUGR = 0x820;
+    inline constexpr i32 CONTAINER_SPAWN_LIST_DWARVEN = 0x821;
+    inline constexpr i32 CONTAINER_SPAWN_LIST_WARLOCK = 0x822;
+
 }

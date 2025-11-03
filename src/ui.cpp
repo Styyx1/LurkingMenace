@@ -36,6 +36,7 @@ namespace UI {
 			Toggles::toggle_urn_temp = s::explosion_spawn_urn.GetValue();
 			Toggles::toggle_meme_sound_temp = s::meme_sound_active.GetValue();
 			Toggles::toggle_explosion_visuals_temp = s::visual_explosions_for_spawns_active.GetValue();
+			Toggles::toggle_npc_vampire = s::npc_spawn_vampire.GetValue();
 		}
 	}
 
@@ -67,6 +68,7 @@ namespace UI {
 			Toggles::toggle_urn_temp = true;
 			Toggles::toggle_meme_sound_temp = false;
 			Toggles::toggle_explosion_visuals_temp = true;
+			Toggles::toggle_npc_vampire = true;
 
 			s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
 			s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
@@ -78,6 +80,7 @@ namespace UI {
 			s::explosion_spawn_urn.SetValue(Toggles::toggle_urn_temp);
 			s::meme_sound_active.SetValue(Toggles::toggle_meme_sound_temp);
 			s::visual_explosions_for_spawns_active.SetValue(Toggles::toggle_explosion_visuals_temp);
+			s::npc_spawn_vampire.SetValue(Toggles::toggle_npc_vampire);
 		}
 
 		Config::Settings::GetSingleton()->UpdateSettings(true);
@@ -120,6 +123,14 @@ namespace UI {
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::use_delay_time_ranges.c_str());
+
+			if (ImGui::Checkbox(Label::spawn_from_formlist.c_str(), &spawn_from_formlist)) {
+				s::spawn_from_formlist.SetValue(spawn_from_formlist);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::spawn_from_formlist.c_str());
+
+
 			ImGui::NewLine();
 
 			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Timers.c_str());
@@ -172,7 +183,7 @@ namespace UI {
 			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), "Spawn Toggles");
 
 			ImGui::NewLine();
-			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), "Misc Toggles");
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Misc.c_str());
 			// --- Meme Sound ---
 			if (ImGui::Checkbox(Label::toggle_meme_sound.c_str(), &toggle_meme_sound_temp)) {
 				s::meme_sound_active.SetValue(toggle_meme_sound_temp);
@@ -208,6 +219,15 @@ namespace UI {
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_werewolf_spawns.c_str());
 
+
+			if (ImGui::Checkbox(Label::toggle_npc_vampires.c_str(), &toggle_npc_vampire)) {
+				s::npc_spawn_vampire.SetValue(toggle_npc_vampire);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::toggle_npc_vampires.c_str());
+
+
+
 			ImGui::Text("Containers");
 
 			// --- Draugr Spawns ---
@@ -239,7 +259,8 @@ namespace UI {
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_mimic_spawns.c_str());
-
+			
+			
 
 
 			// --- Urn Explosions ---

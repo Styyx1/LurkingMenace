@@ -21,6 +21,7 @@ namespace UI {
 		inline str System = FontAwesome::UnicodeToUtf8(0xf390) + " System";
 		inline str Timers = FontAwesome::UnicodeToUtf8(0xf017) + " Timers";
 		inline str Spawns = FontAwesome::UnicodeToUtf8(0xf6e2) + " Spawns";
+		inline str Misc = FontAwesome::UnicodeToUtf8(0xf67b) + " Misc Toggles";
 	}
 	namespace Settings {
 
@@ -33,6 +34,7 @@ namespace UI {
 			inline str delay_time_without_range = "Default Delay Time";
 			inline str delay_time_max = "Maximum Delay";
 			inline str delay_time_min = "Minimum Delay";
+			inline str spawn_from_formlist = "Spawn from list";
 
 		}
 		namespace Tooltip {
@@ -42,6 +44,7 @@ namespace UI {
 			inline str delay_time_without_range = "Default delay without any ranges. If you activate ranges, this setting will be ignored!";
 			inline str delay_time_max = "Maximum delay for a spawn";
 			inline str delay_time_min = "Minimum delay for a spawn";
+			inline str spawn_from_formlist = "Toggle spawning from the formlists instead of the static single encounters";
 		}
 
 		inline float spawn_chance_temp;
@@ -50,6 +53,7 @@ namespace UI {
 		inline float delay_time_without_delay_temp;
 		inline float delay_time_range_minimum_temp;
 		inline float delay_time_range_maximum_temp;
+		inline bool spawn_from_formlist;
 
 	}
 	namespace Toggles {
@@ -65,6 +69,7 @@ namespace UI {
 			inline str toggle_urn_spawns = "Toggle Urn Explosions";
 			inline str toggle_meme_sound = "Toggle Meme Sound";
 			inline str toggle_explosion_visuals = "Toggle Explosion Visuals";
+			inline str toggle_npc_vampires = "Toggle Vampire Spawns";
 		}
 		namespace Tooltip {
 			inline str toggle_npc_spawns = "Toggle Spawns from Generic NPCs";
@@ -76,6 +81,7 @@ namespace UI {
 			inline str toggle_urn_spawns = "Toggle explosions that can happen by opening Urns";
 			inline str toggle_meme_sound = "Toggle Meme Sound";
 			inline str toggle_explosion_visuals = "Toggle Explosion Visuals";
+			inline str toggle_npc_vampires = "Toggle Spawns from dead vampires";
 		}
 
 		inline bool toggle_npc_spawns_temp;
@@ -87,6 +93,7 @@ namespace UI {
 		inline bool toggle_urn_temp;
 		inline bool toggle_meme_sound_temp;
 		inline bool toggle_explosion_visuals_temp;
+		inline bool toggle_npc_vampire;
 
 	}
 }

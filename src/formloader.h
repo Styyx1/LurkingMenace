@@ -17,6 +17,47 @@ namespace Forms {
         inline static RE::SpellItem* stress_spell{ nullptr };
         inline static RE::BGSSoundDescriptorForm* meme_sound{ nullptr };
 
+        inline static RE::BGSListForm* npc_spawn_formlist_generic{ nullptr };
+        inline static RE::BGSListForm* npc_spawn_formlist_werewolf{ nullptr };
+        inline static RE::BGSListForm* npc_spawn_formlist_vampire{ nullptr };
+        inline static RE::BGSListForm* npc_spawn_formlist_dwarven{ nullptr };
+        inline static RE::BGSListForm* npc_spawn_formlist_undead{ nullptr };
+        inline static RE::BGSListForm* npc_spawn_formlist_dragon{ nullptr };
+
+        inline static RE::BGSListForm* cont_spawn_formlist_generic{ nullptr };
+        inline static RE::BGSListForm* cont_spawn_formlist_draugr{ nullptr };
+        inline static RE::BGSListForm* cont_spawn_formlist_dwarven{ nullptr };
+        inline static RE::BGSListForm* cont_spawn_formlist_warlock{ nullptr };
+
+        using VECN = std::vector<RE::TESNPC*>;
+        inline static VECN npc_spawn_generic_vec;
+        inline static VECN npc_spawn_vec_werefolf;
+        inline static VECN npc_spawn_vec_vampire;
+        inline static VECN npc_spawn_vec_dwarven;
+        inline static VECN npc_spawn_vec_undead;
+        inline static VECN npc_spawn_vec_dragon;
+        inline static VECN cont_spawn_vec_generic;
+        inline static VECN cont_spawn_vec_draugr;
+        inline static VECN cont_spawn_vec_dwarven;
+        inline static VECN cont_spawn_vec_warlock;
+  
+
+
+
+        inline void FormlistToVector(RE::BGSListForm* list, std::vector<RE::TESNPC*>& vec) {
+            if (list) 
+            {
+                list->ForEachForm([&](RE::TESForm* a_formInList) {
+                    auto npc = a_formInList->As<RE::TESNPC>();
+                    if (npc) {
+                        vec.emplace_back(npc);
+                        return RE::BSContainer::ForEachResult::kContinue;
+                    }                   
+                    return RE::BSContainer::ForEachResult::kContinue;
+                    });
+            }
+        }
+
         void LogForm(RE::TESForm* a_form) {
             REX::INFO("Form {} is the ID of {}", typeid(a_form).name(), a_form->GetFormID());
         }
@@ -41,6 +82,30 @@ namespace Forms {
             meme_sound = dh->LookupForm<BGSSoundDescriptorForm>(MEME_SOUND, MIMIC_MOD_NAME);
             werewolf_faction = dh->LookupForm<TESFaction>(WEREWOLF_FACTION, SKYRIM_MOD_NAME);
 
+            npc_spawn_formlist_generic = dh->LookupForm<BGSListForm>(NPC_SPAWN_LIST_GENERIC, MIMIC_MOD_NAME);
+            npc_spawn_formlist_werewolf = dh->LookupForm<BGSListForm>(NPC_SPAWN_LIST_WEREWOLF, MIMIC_MOD_NAME);
+            npc_spawn_formlist_vampire = dh->LookupForm<BGSListForm>(NPC_SPAWN_LIST_VAMPIRE, MIMIC_MOD_NAME);
+            npc_spawn_formlist_dwarven = dh->LookupForm<BGSListForm>(NPC_SPAWN_LIST_DWARVEN, MIMIC_MOD_NAME);
+            npc_spawn_formlist_undead = dh->LookupForm<BGSListForm>(NPC_SPAWN_LIST_UNDEAD, MIMIC_MOD_NAME);
+            npc_spawn_formlist_dragon = dh->LookupForm<BGSListForm>(NPC_SPAWN_LIST_DRAGON, MIMIC_MOD_NAME);
+
+            cont_spawn_formlist_generic = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_GENERIC, MIMIC_MOD_NAME);
+            cont_spawn_formlist_draugr = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_DRAUGR, MIMIC_MOD_NAME);
+            cont_spawn_formlist_dwarven = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_DWARVEN, MIMIC_MOD_NAME);
+            cont_spawn_formlist_warlock = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_WARLOCK, MIMIC_MOD_NAME);
+
+            FormlistToVector(npc_spawn_formlist_generic, npc_spawn_generic_vec);
+            FormlistToVector(npc_spawn_formlist_werewolf, npc_spawn_vec_werefolf);
+            FormlistToVector(npc_spawn_formlist_vampire, npc_spawn_vec_vampire);
+            FormlistToVector(npc_spawn_formlist_dwarven, npc_spawn_vec_dwarven);
+            FormlistToVector(npc_spawn_formlist_undead, npc_spawn_vec_undead);
+            FormlistToVector(npc_spawn_formlist_dragon, npc_spawn_vec_dragon);
+
+            FormlistToVector(cont_spawn_formlist_generic, cont_spawn_vec_generic);
+            FormlistToVector(cont_spawn_formlist_draugr, cont_spawn_vec_draugr);
+            FormlistToVector(cont_spawn_formlist_dwarven, cont_spawn_vec_dwarven);
+            FormlistToVector(cont_spawn_formlist_warlock, cont_spawn_vec_warlock);
+
             if (with_logging) {
                 LogForm(spawn_visual_explosion);
                 LogForm(spawn_urn_explosion);
@@ -53,6 +118,7 @@ namespace Forms {
                 LogForm(stress_spell);
                 LogForm(meme_sound);
                 LogForm(werewolf_faction);
+                LogForm(npc_spawn_formlist_generic);
             }
         }
 

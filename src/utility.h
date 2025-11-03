@@ -193,10 +193,9 @@ struct Utility
         kNPCGeneric = 6,
         kNPCWerewolf = 7,
         kNPCVampire = 8,
-        kNPCSkeleton = 9,
-        kNPCDraugr = 10,
-        kNPCAnimal = 11,
-        kNPCDragon = 12,
+        kNPCUndead = 9,
+        kNPCDwarven = 10,
+        kNPCDragon = 11,
         kNone = 0,
     };
 
@@ -218,6 +217,12 @@ struct Utility
             return "NPC Werewolf";
         case SpawnEvent::kNPCVampire:
             return "NPC Vampire";
+        case SpawnEvent::kNPCUndead:
+            return "NPC Undead";
+        case SpawnEvent::kNPCDwarven:
+            return "NPC Dwarven";
+        case SpawnEvent::kNPCDragon:
+            return "NPC Dragon";
         default: 
             return "NONE";
         }
@@ -252,6 +257,11 @@ struct Utility
                 if (Config::Settings::npc_spawn_werewolf.GetValue() && actor->IsInFaction(Forms::Loader::werewolf_faction)) {
                     return SpawnEvent::kNPCWerewolf;
                 }
+                if (Config::Settings::npc_spawn_vampire.GetValue() && ActorUtil::IsVampire(actor)) {
+                    REX::INFO("this is a vamp");
+                    return SpawnEvent::kNPCVampire;
+                }
+
                 if (Config::Settings::npc_spawn_generic.GetValue()) {
                     return SpawnEvent::kNPCGeneric;
                 }
@@ -259,23 +269,48 @@ struct Utility
         }
         return SpawnEvent::kNone;
     }
+
+    inline static RE::TESNPC* GetRandomNPCFromList(std::vector<RE::TESNPC*>& vec, RE::TESNPC* a_fallback) {
+        if (vec.empty())
+            return a_fallback;
+        if (!Config::Settings::spawn_from_formlist.GetValue())
+            return a_fallback;
+
+        int rng = RandomiserUtil::GetRandomInt(0, static_cast<int>(vec.size()) - 1);
+        return vec[rng] ? vec[rng] : a_fallback;
+    }
+
     //takes forms from formloader. Will look for a way to make that more dynamic at some point
     inline static RE::TESNPC* GetNPCFromSpawnType(SpawnEvent type) {
         switch (type) {
         case SpawnEvent::kDraugr:
-            return Forms::Loader::container_spawn_draugr;
+            return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_draugr, Forms::Loader::container_spawn_draugr);
         case SpawnEvent::kDwarven:
-            return Forms::Loader::container_spawn_dwarven;
+            return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_dwarven,Forms::Loader::container_spawn_dwarven);
         case SpawnEvent::kWarlock:
-            return Forms::Loader::container_spawn_warlock;
+            return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_warlock,Forms::Loader::container_spawn_warlock);
         case SpawnEvent::kGeneric:
-            return Forms::Loader::container_spawn_mimic;
+            return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_generic,Forms::Loader::container_spawn_mimic);
         case SpawnEvent::kNPCWerewolf:
-            return Forms::Loader::npc_spawn_werewolf;
-        case SpawnEvent::kNPCGeneric:
-            return Forms::Loader::npc_spawn_generic;
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_werefolf,Forms::Loader::npc_spawn_werewolf);
+        case SpawnEvent::kNPCGeneric: 
+            return GetRandomNPCFromList(Forms::Loader::npc_spawn_generic_vec, Forms::Loader::npc_spawn_generic);                                         
         default:
             return nullptr;
         }
+    }
+
+    inline static RE::TESObjectREFR* PapyrusPlaceAtMe(RE::TESObjectREFR* target, RE::TESForm* object, bool persistent, bool disabled) {
+        if (target && object) {
+            if (object->GetFormType() == RE::FormType::Explosion && disabled) {
+                // disabled explosions not allowed
+            }
+            else {
+                using func_t = RE::TESObjectREFR* (*)(std::int64_t, std::int32_t, RE::TESObjectREFR*, RE::TESForm*, std::int32_t, bool, bool);
+                static REL::Relocation<func_t> func{ REL::ID(56203) };
+                return func(NULL, NULL, target, object, 1, persistent, disabled);
+            }
+        }
+        return nullptr;
     }
 };

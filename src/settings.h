@@ -18,6 +18,8 @@ namespace Config {
         static inline REX::TOML::Bool explosion_spawn_urn{ SECTION_TOGGLES, "bUrnExplosions", true };
         static inline REX::TOML::Bool meme_sound_active{ SECTION_TOGGLES, "bUseMemeSound", false };
         static inline REX::TOML::Bool visual_explosions_for_spawns_active{ SECTION_TOGGLES, "bUseVisualExplosions", true };
+        static inline REX::TOML::Bool npc_spawn_vampire{ SECTION_TOGGLES, "bNPCSpawnVampire", true };
+        static inline REX::TOML::Bool spawn_from_formlist{ SECTION_TOGGLES, "bSpawnFromList", true };
 
         static inline REX::TOML::Bool delay_explosion_active{ SECTION_TIMERS, "bUseDelayedExplosion", true };
         static inline REX::TOML::Bool delay_time_range_active{ SECTION_TIMERS, "bUseDelayTimeRanges", true };
