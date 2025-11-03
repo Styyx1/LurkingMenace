@@ -5,6 +5,7 @@
 
 struct Utility
 {
+    //mainly used for draugr looking containers cause otherwise they aren't easy to check for afaik
     inline static bool DoesNameContain(const std::string& base_name, const std::string& to_search) {
         if (base_name.empty() || to_search.empty())
             return false;
@@ -110,7 +111,7 @@ struct Utility
         else
             return false;
     }
-
+    //Gets duration for threads
     inline static std::chrono::duration<double> GetTimer()
     {
         using set = Config::Settings;
@@ -125,6 +126,7 @@ struct Utility
             return set::thread_delay;
         }
     }
+    //Moves all items from the container into the inventory of the spawn
     inline static void RemoveAllItems(RE::TESObjectREFR* a_refToRemoveFrom, RE::TESObjectREFR* a_refToGiveItems)
     {
         auto inv_map = a_refToRemoveFrom->GetHandle().get()->GetInventoryCounts();
@@ -137,7 +139,7 @@ struct Utility
                 return;
         }
     }
-
+    //Most Important function of the entire mod
     inline static void PlayMeme()
     {
         RE::PlayerCharacter* p  = Cache::GetPlayerSingleton();
@@ -154,18 +156,15 @@ struct Utility
 
         if (player->GetCurrentLocation() != nullptr) {
             return player->GetCurrentLocation()->HasKeywordString(locKeyword);
-            // REX::DEBUG("current location is: {}", player->GetCurrentLocation()->GetName());
         }
         else {
-            REX::DEBUG("no location found");
             return false;
         }
     }
-
+    //should work with modded homes unless they are badly made
     inline static bool LocPlayerOwned()
     {
         RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
-
         if (player->GetCurrentLocation() != nullptr) {
             if (player->GetCurrentLocation()->HasKeywordString("LocTypePlayerHouse")) {
                 return true;
@@ -177,7 +176,7 @@ struct Utility
             return false;
         }
     }
-
+    //applies dummy spell that gets the stress increase keyword thanks to KID
     inline static void ApplyStress(RE::Actor* target)
     {
         RE::PlayerCharacter* player   = Cache::GetPlayerSingleton();
@@ -193,33 +192,40 @@ struct Utility
         kGeneric = 5,
         kNPCGeneric = 6,
         kNPCWerewolf = 7,
+        kNPCVampire = 8,
+        kNPCSkeleton = 9,
+        kNPCDraugr = 10,
+        kNPCAnimal = 11,
+        kNPCDragon = 12,
         kNone = 0,
     };
 
     inline static std::string_view SpawnEventToString(SpawnEvent ev) {
         switch (ev) {
         case SpawnEvent::kDraugr:
-            return "Draugr";
+            return "CONTAINER Draugr";
         case SpawnEvent::kDwarven:
-            return "Dwarven";
+            return "CONTAINER Dwarven";
         case SpawnEvent::kWarlock:
-            return "Warlock";
+            return "CONTAINER Warlock";
         case SpawnEvent::kUrn:
-            return "Urn";
+            return "CONTAINER Urn";
         case SpawnEvent::kGeneric:
-            return "Generic";
+            return "CONTAINER Generic";
         case SpawnEvent::kNPCGeneric:
-            return "Generic NPC";
+            return "NPC Generic";
         case SpawnEvent::kNPCWerewolf:
-            return "Werewolf";
+            return "NPC Werewolf";
+        case SpawnEvent::kNPCVampire:
+            return "NPC Vampire";
         default: 
             return "NONE";
         }
     }
-
+    //needed TESObjectREFR as argument instead of TESForm, but the event used has TESObjectREFR anyway
     inline static SpawnEvent GetSpawnEvent(RE::TESObjectREFR* reference) {
         using s = Config::Settings;
-
+        // containers
         if (reference->GetBaseObject()->Is(RE::FormType::Container)) {
             if (s::container_spawn_draugr_active.GetValue() && DoesNameContain(reference->GetName(), "draugr")) {
                 return SpawnEvent::kDraugr;
@@ -238,8 +244,8 @@ struct Utility
                 return SpawnEvent::kGeneric;
             }
         }       
-
-        //NPC
+        
+        //NPCs
         if (reference->Is(RE::FormType::ActorCharacter)) {
             auto actor = reference->As<RE::Actor>();
             if (actor){
@@ -253,7 +259,7 @@ struct Utility
         }
         return SpawnEvent::kNone;
     }
-
+    //takes forms from formloader. Will look for a way to make that more dynamic at some point
     inline static RE::TESNPC* GetNPCFromSpawnType(SpawnEvent type) {
         switch (type) {
         case SpawnEvent::kDraugr:
