@@ -278,7 +278,7 @@ struct Utility
 			if (s::explosion_spawn_urn.GetValue() && DoesNameContain(reference->GetName(), "urn") && CellUtil::IsDungeon(ActorUtil::GetPlayerCell(player))) {
 				return SpawnEvent::kUrn;
 			}
-			if (s::container_spawn_mimic_active.GetValue()) {
+			else {
 				return SpawnEvent::kGeneric;
 			}
 		}
@@ -287,10 +287,10 @@ struct Utility
 		if (reference->Is(RE::FormType::ActorCharacter)) {
 			auto actor = reference->As<RE::Actor>();
 			if (actor) {
-				if (Config::Settings::npc_spawn_werewolf.GetValue() && actor->IsInFaction(Forms::Loader::werewolf_faction)) {
+				if (actor->IsInFaction(Forms::Loader::werewolf_faction)) {
 					return SpawnEvent::kNPCWerewolf;
 				}
-				if (Config::Settings::npc_spawn_vampire.GetValue() && ActorUtil::IsVampire(actor)) {
+				if (ActorUtil::IsVampire(actor)) {
 					return SpawnEvent::kNPCVampire;
 				}
 				if (ActorUtil::IsUndead(actor)) {
@@ -302,8 +302,7 @@ struct Utility
 				if (ActorUtil::IsDragon(actor)) {
 					return SpawnEvent::kNPCDragon;
 				}
-
-				if (Config::Settings::npc_spawn_generic.GetValue() && !ActorUtil::IsDragon(actor)) {
+				else {
 					return SpawnEvent::kNPCGeneric;
 				}
 			}
