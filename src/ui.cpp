@@ -25,6 +25,7 @@ namespace UI {
 			Settings::delay_time_without_delay_temp = s::delay_timer_seconds.GetValue();
 			Settings::delay_time_range_minimum_temp = s::delay_time_min.GetValue();
 			Settings::delay_time_range_maximum_temp = s::delay_time_max.GetValue();
+			Settings::spawn_from_formlist = s::spawn_from_formlist.GetValue();
 		}
 		if (toggles) {
 			Toggles::toggle_npc_spawns_temp = s::npc_spawn_generic.GetValue();
@@ -37,6 +38,9 @@ namespace UI {
 			Toggles::toggle_meme_sound_temp = s::meme_sound_active.GetValue();
 			Toggles::toggle_explosion_visuals_temp = s::visual_explosions_for_spawns_active.GetValue();
 			Toggles::toggle_npc_vampire = s::npc_spawn_vampire.GetValue();
+			Toggles::npc_toggle_undead = s::npc_spawn_undead.GetValue();
+			Toggles::npc_toggle_dwarven = s::npc_spawn_dwarven.GetValue();
+			Toggles::npc_toggle_dragon = s::npc_spawn_dragon.GetValue();
 		}
 	}
 
@@ -44,19 +48,21 @@ namespace UI {
 	{
 		using s = Config::Settings;
 		if (settings) {
-			Settings::spawn_chance_temp = 10.0;			
+			Settings::spawn_chance_temp = 10.0;
 			Settings::use_delayed_explosion_temp = true;
 			Settings::use_time_ranges_temp = true;
-			Settings::delay_time_without_delay_temp = 2.5;			
-			Settings::delay_time_range_minimum_temp = 1.0;			
+			Settings::delay_time_without_delay_temp = 2.5;
+			Settings::delay_time_range_minimum_temp = 1.0;
 			Settings::delay_time_range_maximum_temp = 10.0;
+			Settings::spawn_from_formlist = true;
 
 			s::mimic_chance.SetValue(Settings::spawn_chance_temp);
-			s::delay_timer_seconds.SetValue(Settings::delay_time_without_delay_temp);			
+			s::delay_timer_seconds.SetValue(Settings::delay_time_without_delay_temp);
 			s::delay_explosion_active.SetValue(Settings::use_delayed_explosion_temp);
 			s::delay_time_range_active.SetValue(Settings::use_time_ranges_temp);
 			s::delay_time_min.SetValue(Settings::delay_time_range_minimum_temp);
 			s::delay_time_max.SetValue(Settings::delay_time_range_maximum_temp);
+			s::spawn_from_formlist.SetValue(Settings::spawn_from_formlist);
 		}
 		if (toggles) {
 			Toggles::toggle_npc_spawns_temp = true;
@@ -69,6 +75,9 @@ namespace UI {
 			Toggles::toggle_meme_sound_temp = false;
 			Toggles::toggle_explosion_visuals_temp = true;
 			Toggles::toggle_npc_vampire = true;
+			Toggles::npc_toggle_undead = true;
+			Toggles::npc_toggle_dwarven = true;
+			Toggles::npc_toggle_dragon = false;
 
 			s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
 			s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
@@ -81,6 +90,9 @@ namespace UI {
 			s::meme_sound_active.SetValue(Toggles::toggle_meme_sound_temp);
 			s::visual_explosions_for_spawns_active.SetValue(Toggles::toggle_explosion_visuals_temp);
 			s::npc_spawn_vampire.SetValue(Toggles::toggle_npc_vampire);
+			s::npc_spawn_undead.SetValue(Toggles::npc_toggle_undead);
+			s::npc_spawn_dwarven.SetValue(Toggles::npc_toggle_dwarven);
+			s::npc_spawn_dragon.SetValue(Toggles::npc_toggle_dragon);
 		}
 
 		Config::Settings::GetSingleton()->UpdateSettings(true);
@@ -157,13 +169,12 @@ namespace UI {
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::delay_time_max.c_str());
-			
+
 			//Save Config and Default Settings
 			ImGui::NewLine();
-			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f),MenuTitles::System.c_str());
+			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::System.c_str());
 			if (ImGui::Button(MenuTitles::Save.c_str())) {
 				Config::Settings::GetSingleton()->UpdateSettings(true);
-				REX::INFO("spawn chance is set to: {}", Config::Settings::mimic_chance.GetValue());
 			}
 			ImGui::SameLine();
 			if (ImGui::Button(MenuTitles::Restore.c_str())) {
@@ -184,15 +195,13 @@ namespace UI {
 
 			ImGui::NewLine();
 			ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Misc.c_str());
-			// --- Meme Sound ---
+			// line 1
 			if (ImGui::Checkbox(Label::toggle_meme_sound.c_str(), &toggle_meme_sound_temp)) {
 				s::meme_sound_active.SetValue(toggle_meme_sound_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_meme_sound.c_str());
-
 			ImGui::SameLine();
-			// --- Explosion Visuals ---
 			if (ImGui::Checkbox(Label::toggle_explosion_visuals.c_str(), &toggle_explosion_visuals_temp)) {
 				s::visual_explosions_for_spawns_active.SetValue(toggle_explosion_visuals_temp);
 			}
@@ -204,73 +213,82 @@ namespace UI {
 
 			ImGui::Text("NPC Spawns");
 
-			// --- NPC Spawns ---
+			// line 1 spawns npcs
 			if (ImGui::Checkbox(Label::toggle_npc_spawns.c_str(), &toggle_npc_spawns_temp)) {
 				s::npc_spawn_generic.SetValue(toggle_npc_spawns_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_npc_spawns.c_str());
-
-			// --- Werewolf Spawns ---
 			ImGui::SameLine();
 			if (ImGui::Checkbox(Label::toggle_werewolf_spawns.c_str(), &toggle_werewolf_spawns_temp)) {
-				 s::npc_spawn_werewolf.SetValue(toggle_werewolf_spawns_temp);
+				s::npc_spawn_werewolf.SetValue(toggle_werewolf_spawns_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_werewolf_spawns.c_str());
 
-
+			//line 2 spawns npcs
 			if (ImGui::Checkbox(Label::toggle_npc_vampires.c_str(), &toggle_npc_vampire)) {
 				s::npc_spawn_vampire.SetValue(toggle_npc_vampire);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_npc_vampires.c_str());
+			ImGui::SameLine();
+			if (ImGui::Checkbox(Label::npc_toggle_undead.c_str(), &npc_toggle_undead)) {
+				s::npc_spawn_undead.SetValue(npc_toggle_undead);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::npc_toggle_undead.c_str());
+			//line 3 npcs
 
+			if (ImGui::Checkbox(Label::npc_toggle_dwarven.c_str(), &npc_toggle_dwarven)) {
+				s::npc_spawn_dwarven.SetValue(npc_toggle_dwarven);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::npc_toggle_dwarven.c_str());
+			ImGui::SameLine();
+			if (ImGui::Checkbox(Label::npc_toggle_dragon.c_str(), &npc_toggle_dragon)) {
+				s::npc_spawn_dragon.SetValue(npc_toggle_dragon);
+			}
+			ImGui::SameLine();
+			HelpMarker(Tooltip::npc_toggle_dragon.c_str());
 
 
 			ImGui::Text("Containers");
 
-			// --- Draugr Spawns ---
+			// line 1 cont
 			if (ImGui::Checkbox(Label::toggle_draugr_spawns.c_str(), &toggle_draugr_temp)) {
 				s::container_spawn_draugr_active.SetValue(toggle_draugr_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_draugr_spawns.c_str());
 			ImGui::SameLine();
-			// --- Dwarven Spawns ---
 			if (ImGui::Checkbox(Label::toggle_dwarven_spawns.c_str(), &toggle_dwarven_temp)) {
 				s::container_spawn_dwarven_active.SetValue(toggle_dwarven_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_dwarven_spawns.c_str());
 
-
-
-			// --- Warlock Spawns ---
+			// line 2 cont
 			if (ImGui::Checkbox(Label::toggle_warlock_spawns.c_str(), &toggle_warlock_temp)) {
 				s::container_spawn_warlock_active.SetValue(toggle_warlock_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_warlock_spawns.c_str());
 			ImGui::SameLine();
-			// --- Mimic Spawns ---
 			if (ImGui::Checkbox(Label::toggle_mimic_spawns.c_str(), &toggle_mimic_temp)) {
 				s::container_spawn_mimic_active.SetValue(toggle_mimic_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_mimic_spawns.c_str());
-			
-			
 
-
-			// --- Urn Explosions ---
+			// line 3 cont
 			if (ImGui::Checkbox(Label::toggle_urn_spawns.c_str(), &toggle_urn_temp)) {
 				s::explosion_spawn_urn.SetValue(toggle_urn_temp);
 			}
 			ImGui::SameLine();
 			HelpMarker(Tooltip::toggle_urn_spawns.c_str());
 
-			
+
 
 			//Save Config and Default Settings
 			ImGui::NewLine();
@@ -286,5 +304,5 @@ namespace UI {
 		}
 
 	}
-	
+
 }

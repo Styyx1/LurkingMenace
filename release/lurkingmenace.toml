@@ -1,35 +1,58 @@
-# =============================================================
+# --------------------------------------------------------------===
 # Lurking Menace - Configuration File
-# This file controls spawn rates, event toggles, and debug options.
 # You can override values in 'lurkingmenace_custom.toml'.
-# =============================================================
+# --------------------------------------------------------------===
 
 [Debugging]
 # Enables verbose logging for debugging and development.
 bEnableDebug = true
 
 [Settings]
-# Global spawn chance for mimic-related events (0.0 - 100.0)
+# Global spawn chance for mimic-related events (0.0 - 100.0) default is 10.0
 fEventSpawnChance = 100.0
 
 [Toggles]
-# Whether mimics can spawn from NPC corpses
+# -------------------------------
+# NPC-Related Spawns
+# -------------------------------
+
+# Enable generic NPC corpse spawns
 bSpawnFromNpcsGeneric = true
 
-# Whether enemies can spawn from Werewolf corpses
+# Enable werewolf corpse spawns
 bNPCSpawnWerewolf = true
 
-# Enable Draugr spawns from containers (e.g., "Draugr Tomb" chests)
+# Enable vampire corpse spawns
+bNPCSpawnVampire = true
+
+# Enable dwarven NPC corpse spawns (automatons or Dwemer constructs)
+bSpawnFromDwarvenNPC = true
+
+# Enable undead corpse spawns (skeletons, draugr, etc.)
+bSpawnFromUndeadNPC = true
+
+# Enable dragon corpse spawns
+bSpawnFromDragon = false
+
+# -------------------------------
+# Container-Related Spawns
+# -------------------------------
+
+# Enable spawns from Draugr containers (dead draugr that are actually static and never wake up)
 bChestSpawnDraugr = true
 
 # Enable Dwarven automaton spawns from containers in Dwemer ruins
 bChestSpawnDwarven = true
 
-# Enable Warlock/Vampire (Shade) spawns from containers in magical lairs
+# Enable Special spawns in warlock/vampire locations
 bChestSpawnWarlock = true
 
-# Enable generic mimic spawns from standard chests
+# Enable generic mimic spawns from chests
 bChestSpawnMimic = true
+
+# -------------------------------
+# Misc Options
+# -------------------------------
 
 # Enable urn explosion events in dungeons
 bUrnExplosions = true
@@ -39,6 +62,9 @@ bUseMemeSound = true
 
 # Enable explosion VFX when a spawn event happens
 bUseVisualExplosions = true
+
+# Allow spawns based on custom formlists
+bSpawnFromList = true
 
 [Timers]
 # Enable delayed explosion or spawn effects

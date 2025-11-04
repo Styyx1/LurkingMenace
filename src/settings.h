@@ -6,21 +6,26 @@ using namespace MOD;
 namespace Config {
     struct Settings : public REX::Singleton<Settings> {
         static inline REX::TOML::Bool debug_logging{ SECTION_DEBUG, "bEnableDebug", false };
-
         static inline REX::TOML::F32 mimic_chance{ SECTION_SETTINGS, "fEventSpawnChance", 50.0f };
-
+        //npc toggles
         static inline REX::TOML::Bool npc_spawn_generic{ SECTION_TOGGLES, "bSpawnFromNpcsGeneric", true };
         static inline REX::TOML::Bool npc_spawn_werewolf{ SECTION_TOGGLES, "bNPCSpawnWerewolf", true };
+        static inline REX::TOML::Bool npc_spawn_vampire{ SECTION_TOGGLES, "bNPCSpawnVampire", true };
+        static inline REX::TOML::Bool npc_spawn_dwarven{ SECTION_TOGGLES, "bSpawnFromDwarvenNPC", true };
+        static inline REX::TOML::Bool npc_spawn_undead{ SECTION_TOGGLES, "bSpawnFromUndeadNPC", true };
+        static inline REX::TOML::Bool npc_spawn_dragon{ SECTION_TOGGLES, "bSpawnFromDragon", false };
+        //container toggles
         static inline REX::TOML::Bool container_spawn_draugr_active{ SECTION_TOGGLES, "bChestSpawnDraugr", true };
         static inline REX::TOML::Bool container_spawn_dwarven_active{ SECTION_TOGGLES, "bChestSpawnDwarven", true };
         static inline REX::TOML::Bool container_spawn_warlock_active{ SECTION_TOGGLES, "bChestSpawnWarlock", true };
         static inline REX::TOML::Bool container_spawn_mimic_active{ SECTION_TOGGLES, "bChestSpawnMimic", true };
+        //misc settings
         static inline REX::TOML::Bool explosion_spawn_urn{ SECTION_TOGGLES, "bUrnExplosions", true };
         static inline REX::TOML::Bool meme_sound_active{ SECTION_TOGGLES, "bUseMemeSound", false };
-        static inline REX::TOML::Bool visual_explosions_for_spawns_active{ SECTION_TOGGLES, "bUseVisualExplosions", true };
-        static inline REX::TOML::Bool npc_spawn_vampire{ SECTION_TOGGLES, "bNPCSpawnVampire", true };
-        static inline REX::TOML::Bool spawn_from_formlist{ SECTION_TOGGLES, "bSpawnFromList", true };
+        static inline REX::TOML::Bool visual_explosions_for_spawns_active{ SECTION_TOGGLES, "bUseVisualExplosions", true };       
+        static inline REX::TOML::Bool spawn_from_formlist{ SECTION_TOGGLES, "bSpawnFromList", true };    
 
+        //timere related
         static inline REX::TOML::Bool delay_explosion_active{ SECTION_TIMERS, "bUseDelayedExplosion", true };
         static inline REX::TOML::Bool delay_time_range_active{ SECTION_TIMERS, "bUseDelayTimeRanges", true };
         static inline REX::TOML::F64 delay_timer_seconds{ SECTION_TIMERS, "fDelayTime", 2.5 };

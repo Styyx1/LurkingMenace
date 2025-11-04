@@ -70,6 +70,9 @@ namespace UI {
 			inline str toggle_meme_sound = "Toggle Meme Sound";
 			inline str toggle_explosion_visuals = "Toggle Explosion Visuals";
 			inline str toggle_npc_vampires = "Toggle Vampire Spawns";
+			inline str npc_toggle_undead = "Toggle From Undead";
+			inline str npc_toggle_dwarven = "Toggle From Dwarven NPC";
+			inline str npc_toggle_dragon = "Toggle From Dragons";
 		}
 		namespace Tooltip {
 			inline str toggle_npc_spawns = "Toggle Spawns from Generic NPCs";
@@ -82,6 +85,9 @@ namespace UI {
 			inline str toggle_meme_sound = "Toggle Meme Sound";
 			inline str toggle_explosion_visuals = "Toggle Explosion Visuals";
 			inline str toggle_npc_vampires = "Toggle Spawns from dead vampires";
+			inline str npc_toggle_undead = "Toggle Spawns from dead undead NPCs";
+			inline str npc_toggle_dwarven = "Toggle Spawns from dwarven NPCs";
+			inline str npc_toggle_dragon = "Toggle Spawns from dragons";
 		}
 
 		inline bool toggle_npc_spawns_temp;
@@ -94,6 +100,8 @@ namespace UI {
 		inline bool toggle_meme_sound_temp;
 		inline bool toggle_explosion_visuals_temp;
 		inline bool toggle_npc_vampire;
-
+		inline bool npc_toggle_undead;
+		inline bool npc_toggle_dwarven;
+		inline bool npc_toggle_dragon;
 	}
 }
