@@ -1,190 +1,215 @@
 #pragma once
 #include "cache.h"
-#include "settings.h"
 #include "formloader.h"
+#include "settings.h"
 
 struct Utility
 {
-	//mainly used for draugr looking containers cause otherwise they aren't easy to check for afaik
-	inline static bool DoesNameContain(const std::string& base_name, const std::string& to_search) {
-		if (base_name.empty() || to_search.empty())
+	// mainly used for draugr looking containers cause otherwise they aren't easy to check for afaik
+	inline static bool DoesNameContain( const std::string &base_name, const std::string &to_search )
+	{
+		if ( base_name.empty() || to_search.empty() )
 			return false;
 
 		std::string lowercase_base = base_name;
-		std::ranges::transform(lowercase_base, lowercase_base.begin(), ::tolower);
+		std::ranges::transform( lowercase_base, lowercase_base.begin(), ::tolower );
 		std::string lowercase_search = to_search;
-		std::ranges::transform(lowercase_search, lowercase_search.begin(), ::tolower);
+		std::ranges::transform( lowercase_search, lowercase_search.begin(), ::tolower );
 
-		if (lowercase_base.contains(lowercase_search))
+		if ( lowercase_base.contains( lowercase_search ) )
 			return true;
 		return false;
 	}
 
-	inline static bool HasRestrictedName(RE::TESObjectREFR* form) {
+	inline static bool HasRestrictedName( RE::TESObjectREFR *form )
+	{
 
 		std::string res_name = form->GetName();
-		REX::DEBUG("name is {}", form->GetName());
-		if (res_name.empty()) {
-			REX::DEBUG("no name found");
+		REX::DEBUG( "name is {}", form->GetName() );
+		if ( res_name.empty() )
+		{
+			REX::DEBUG( "no name found" );
 			return false;
 		}
 
 		std::string lowered = res_name;
-		std::ranges::transform(lowered, lowered.begin(), ::tolower);
+		std::ranges::transform( lowered, lowered.begin(), ::tolower );
 
-		if (std::count(Config::JSONLoader::exception_names.begin(), Config::JSONLoader::exception_names.end(), lowered)) {
-			REX::DEBUG("{} is a restricted name", res_name);
+		if ( std::count( Config::JSONLoader::exception_names.begin(), Config::JSONLoader::exception_names.end(), lowered ) )
+		{
+			REX::DEBUG( "{} is a restricted name", res_name );
 			return true;
 		}
 		else
 			return false;
-
 	}
 
-	static inline bool IsRestrictedForm(RE::TESForm* form) {
-		if (Config::JSONLoader::exception_forms.contains(form))
+	static inline bool IsRestrictedForm( RE::TESForm *form )
+	{
+		if ( Config::JSONLoader::exception_forms.contains( form ) )
 			return true;
 		return false;
 	}
 
 	inline static bool isRestrictedCell()
 	{
-		RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
-		auto                     cell = ActorUtil::GetPlayerCell(player);
+		RE::PlayerCharacter *player = Cache::GetPlayerSingleton();
+		auto cell = ActorUtil::GetPlayerCell( player );
 
-		if (!cell)
+		if ( !cell )
 			return false;
 
-		if (Config::JSONLoader::exception_cells.contains(cell)) {
-			REX::DEBUG(std::format("{} is a restricted Cell", player->GetParentCell()->GetFormEditorID()));
+		if ( Config::JSONLoader::exception_cells.contains( cell ) )
+		{
+			REX::DEBUG( std::format( "{} is a restricted Cell", player->GetParentCell()->GetFormEditorID() ) );
 			return true;
 		}
-		else {
+		else
+		{
 			return false;
 		}
 	};
 
 	inline static bool isRestrictedLoc()
 	{
-		RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
+		RE::PlayerCharacter *player = Cache::GetPlayerSingleton();
 
-		if (player->GetCurrentLocation()) {
-			REX::DEBUG(std::format("location is {}", player->GetParentCell()->GetFormEditorID()));
-			return player->GetCurrentLocation()->HasAnyKeywordByEditorID(Config::JSONLoader::exception_keywords);
+		if ( player->GetCurrentLocation() )
+		{
+			REX::DEBUG( std::format( "location is {}", player->GetParentCell()->GetFormEditorID() ) );
+			return player->GetCurrentLocation()->HasAnyKeywordByEditorID( Config::JSONLoader::exception_keywords );
 		}
-		else {
-			REX::DEBUG("no location found");
+		else
+		{
+			REX::DEBUG( "no location found" );
 			return false;
 		}
 	}
 
-	inline static void LogOwnership(RE::TESObjectREFR* obj) {
-		if (obj->GetActorOwner()) {
-			REX::DEBUG("owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName());
+	inline static void LogOwnership( RE::TESObjectREFR *obj )
+	{
+		if ( obj->GetActorOwner() )
+		{
+			REX::DEBUG( "owner of {} is {}", obj->GetName(), obj->GetActorOwner()->GetName() );
 			return;
 		}
-		else {
-			REX::DEBUG("object {} has no owner actor", obj->GetName());
+		else
+		{
+			REX::DEBUG( "object {} has no owner actor", obj->GetName() );
 			return;
 		}
-
 	}
 
-	inline static bool isAnyException(RE::TESObjectREFR* form)
+	inline static bool isAnyException( RE::TESObjectREFR *form )
 	{
-		if (IsRestrictedForm(form) || IsRestrictedForm(form->GetBaseObject())) {
-			REX::DEBUG("Is restricted form");
+		if ( IsRestrictedForm( form ) || IsRestrictedForm( form->GetBaseObject() ) )
+		{
+			REX::DEBUG( "Is restricted form" );
 			return true;
 		}
-		if (isRestrictedCell()) {
-			REX::DEBUG("restricted cell");
+		if ( isRestrictedCell() )
+		{
+			REX::DEBUG( "restricted cell" );
 			return true;
 		}
-		if (isRestrictedLoc()) {
-			REX::DEBUG("restricted location type keyword");
+		if ( isRestrictedLoc() )
+		{
+			REX::DEBUG( "restricted location type keyword" );
 			return true;
 		}
-		if (HasRestrictedName(form)) {
-			REX::DEBUG("Has restricted name");
+		if ( HasRestrictedName( form ) )
+		{
+			REX::DEBUG( "Has restricted name" );
 			return true;
 		}
 		else
 			return false;
 	}
-	//Gets duration for threads
+	// Gets duration for threads
 	inline static std::chrono::duration<double> GetTimer()
 	{
 		using set = Config::Settings;
-		if (set::delay_time_range_active.GetValue()) {
-			auto delay = RandomiserUtil::GetRandomDouble(set::delay_time_min.GetValue(), set::delay_time_max.GetValue());
-			REX::DEBUG(std::format("random time delay is {}", delay));
-			set::thread_delay = std::chrono::duration<double>(delay);
+		if ( set::delay_time_range_active.GetValue() )
+		{
+			auto delay = RandomiserUtil::GetRandomDouble( set::delay_time_min.GetValue(), set::delay_time_max.GetValue() );
+			REX::DEBUG( std::format( "random time delay is {}", delay ) );
+			set::thread_delay = std::chrono::duration<double>( delay );
 			return set::thread_delay;
 		}
-		else {
-			set::thread_delay = std::chrono::duration<double>(set::delay_timer_seconds.GetValue());
+		else
+		{
+			set::thread_delay = std::chrono::duration<double>( set::delay_timer_seconds.GetValue() );
 			return set::thread_delay;
 		}
 	}
-	//Moves all items from the container into the inventory of the spawn
-	inline static void RemoveAllItems(RE::TESObjectREFR* a_refToRemoveFrom, RE::TESObjectREFR* a_refToGiveItems)
+	// Moves all items from the container into the inventory of the spawn
+	inline static void RemoveAllItems( RE::TESObjectREFR *a_refToRemoveFrom, RE::TESObjectREFR *a_refToGiveItems )
 	{
 		auto inv_map = a_refToRemoveFrom->GetHandle().get()->GetInventoryCounts();
-		for (auto& items : inv_map) {
-			if (items.first->GetFormType() != RE::FormType::LeveledItem) {
-				a_refToRemoveFrom->GetHandle().get()->RemoveItem(items.first, items.second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, a_refToGiveItems);
-				REX::DEBUG(std::format("removed {}", items.first->GetName()));
+		for ( auto &items : inv_map )
+		{
+			if ( items.first->GetFormType() != RE::FormType::LeveledItem )
+			{
+				a_refToRemoveFrom->GetHandle().get()->RemoveItem( items.first, items.second, RE::ITEM_REMOVE_REASON::kRemove, nullptr, a_refToGiveItems );
+				REX::DEBUG( std::format( "removed {}", items.first->GetName() ) );
 			}
 			else
 				return;
 		}
 	}
-	//Most Important function of the entire mod
+	// Most Important function of the entire mod
 	inline static void PlayMeme()
 	{
-		RE::PlayerCharacter* p = Cache::GetPlayerSingleton();
-		if (Config::Settings::meme_sound_active.GetValue()) {
-			SoundUtil::PlaySound(p, Forms::Loader::meme_sound, 1.5f);
+		RE::PlayerCharacter *p = Cache::GetPlayerSingleton();
+		if ( Config::Settings::meme_sound_active.GetValue() )
+		{
+			SoundUtil::PlaySound( p, Forms::Loader::meme_sound, 1.5f );
 		}
 		else
 			return;
 	}
 
-	inline static bool LocationCheck(std::string_view locKeyword)
+	inline static bool LocationCheck( std::string_view locKeyword )
 	{
-		RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
+		RE::PlayerCharacter *player = Cache::GetPlayerSingleton();
 
-		if (player->GetCurrentLocation() != nullptr) {
-			return player->GetCurrentLocation()->HasKeywordString(locKeyword);
+		if ( player->GetCurrentLocation() != nullptr )
+		{
+			return player->GetCurrentLocation()->HasKeywordString( locKeyword );
 		}
-		else {
+		else
+		{
 			return false;
 		}
 	}
-	//should work with modded homes unless they are badly made
+	// should work with modded homes unless they are badly made
 	inline static bool LocPlayerOwned()
 	{
-		RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
-		if (player->GetCurrentLocation() != nullptr) {
-			if (player->GetCurrentLocation()->HasKeywordString("LocTypePlayerHouse")) {
+		RE::PlayerCharacter *player = Cache::GetPlayerSingleton();
+		if ( player->GetCurrentLocation() != nullptr )
+		{
+			if ( player->GetCurrentLocation()->HasKeywordString( "LocTypePlayerHouse" ) )
+			{
 				return true;
 			}
 			else
 				return false;
 		}
-		else {
+		else
+		{
 			return false;
 		}
 	}
-	//applies dummy spell that gets the stress increase keyword thanks to KID
-	inline static void ApplyStress(RE::Actor* target)
+	// applies dummy spell that gets the stress increase keyword thanks to KID
+	inline static void ApplyStress( RE::Actor *target )
 	{
-		RE::PlayerCharacter* player = Cache::GetPlayerSingleton();
-		MagicUtil::ApplySpell(player, target, Forms::Loader::stress_spell);
-		REX::DEBUG(std::format("applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName()));
+		RE::PlayerCharacter *player = Cache::GetPlayerSingleton();
+		MagicUtil::ApplySpell( player, target, Forms::Loader::stress_spell );
+		REX::DEBUG( std::format( "applied {} to {}", Forms::Loader::stress_spell->GetName(), target->AsReference()->GetName() ) );
 	}
 
-	enum class SpawnEvent : uint32_t {
+	enum class SpawnEvent : uint32_t
+	{
 		kDraugr = 1,
 		kDwarven = 2,
 		kWarlock = 3,
@@ -199,9 +224,10 @@ struct Utility
 		kNone = 0,
 	};
 
-
-	inline static std::string_view SpawnEventToString(SpawnEvent ev) {
-		switch (ev) {
+	inline static std::string_view SpawnEventToString( SpawnEvent ev )
+	{
+		switch ( ev )
+		{
 		case SpawnEvent::kDraugr:
 			return "CONTAINER Draugr";
 		case SpawnEvent::kDwarven:
@@ -229,10 +255,11 @@ struct Utility
 		}
 	}
 
-	inline static bool IsSpawnTypeEnabled(SpawnEvent type)
+	inline static bool IsSpawnTypeEnabled( SpawnEvent type )
 	{
 		using s = Config::Settings;
-		switch (type) {
+		switch ( type )
+		{
 		case SpawnEvent::kDraugr:
 			return s::container_spawn_draugr_active.GetValue();
 		case SpawnEvent::kDwarven:
@@ -260,49 +287,64 @@ struct Utility
 		}
 	}
 
-	//needed TESObjectREFR as argument instead of TESForm, but the event used has TESObjectREFR anyway
-	inline static SpawnEvent GetSpawnEvent(RE::TESObjectREFR* reference) {
+	// needed TESObjectREFR as argument instead of TESForm, but the event used has TESObjectREFR anyway
+	inline static SpawnEvent GetSpawnEvent( RE::TESObjectREFR *reference )
+	{
 		using s = Config::Settings;
 		// containers
-		if (reference->GetBaseObject()->Is(RE::FormType::Container)) {
-			if (IsSpawnTypeEnabled(SpawnEvent::kDraugr) && DoesNameContain(reference->GetName(), "draugr")) {
+		if ( reference->GetBaseObject()->Is( RE::FormType::Container ) )
+		{
+			if ( IsSpawnTypeEnabled( SpawnEvent::kDraugr ) && DoesNameContain( reference->GetName(), "draugr" ) )
+			{
 				return SpawnEvent::kDraugr;
 			}
-			if (s::container_spawn_dwarven_active.GetValue() && LocationCheck("LocTypeDwarvenAutomatons")) {
+			if ( s::container_spawn_dwarven_active.GetValue() && LocationCheck( "LocTypeDwarvenAutomatons" ) )
+			{
 				return SpawnEvent::kDwarven;
 			}
-			if (s::container_spawn_warlock_active.GetValue() && (LocationCheck("LocTypeWarlockLair") || LocationCheck("LocTypeVampireLair"))) {
+			if ( s::container_spawn_warlock_active.GetValue() && ( LocationCheck( "LocTypeWarlockLair" ) || LocationCheck( "LocTypeVampireLair" ) ) )
+			{
 				return SpawnEvent::kWarlock;
 			}
-			RE::PlayerCharacter* const& player = RE::PlayerCharacter::GetSingleton();
-			if (s::explosion_spawn_urn.GetValue() && DoesNameContain(reference->GetName(), "urn") && CellUtil::IsDungeon(ActorUtil::GetPlayerCell(player))) {
+			RE::PlayerCharacter *const &player = RE::PlayerCharacter::GetSingleton();
+			if ( s::explosion_spawn_urn.GetValue() && DoesNameContain( reference->GetName(), "urn" ) && CellUtil::IsDungeon( ActorUtil::GetPlayerCell( player ) ) )
+			{
 				return SpawnEvent::kUrn;
 			}
-			else {
+			else
+			{
 				return SpawnEvent::kGeneric;
 			}
 		}
 
-		//NPCs
-		if (reference->Is(RE::FormType::ActorCharacter)) {
+		// NPCs
+		if ( reference->Is( RE::FormType::ActorCharacter ) )
+		{
 			auto actor = reference->As<RE::Actor>();
-			if (actor) {
-				if (actor->IsInFaction(Forms::Loader::werewolf_faction)) {
+			if ( actor )
+			{
+				if ( actor->IsInFaction( Forms::Loader::werewolf_faction ) )
+				{
 					return SpawnEvent::kNPCWerewolf;
 				}
-				if (ActorUtil::IsVampire(actor)) {
+				if ( ActorUtil::IsVampire( actor ) )
+				{
 					return SpawnEvent::kNPCVampire;
 				}
-				if (ActorUtil::IsUndead(actor)) {
+				if ( ActorUtil::IsUndead( actor ) )
+				{
 					return SpawnEvent::kNPCUndead;
 				}
-				if (actor && actor->GetParentCell() && Utility::LocationCheck("LocTypeDwarvenAutomatons")) {
+				if ( actor && actor->GetParentCell() && Utility::LocationCheck( "LocTypeDwarvenAutomatons" ) )
+				{
 					return SpawnEvent::kNPCDwarven;
 				}
-				if (ActorUtil::IsDragon(actor)) {
+				if ( ActorUtil::IsDragon( actor ) )
+				{
 					return SpawnEvent::kNPCDragon;
 				}
-				else {
+				else
+				{
 					return SpawnEvent::kNPCGeneric;
 				}
 			}
@@ -310,53 +352,60 @@ struct Utility
 		return SpawnEvent::kNone;
 	}
 
-	inline static RE::TESNPC* GetRandomNPCFromList(std::vector<RE::TESNPC*>& vec, RE::TESNPC* a_fallback = Forms::Loader::npc_spawn_generic) {
-		if (vec.empty())
+	inline static RE::TESNPC *GetRandomNPCFromList( std::vector<RE::TESNPC *> &vec, RE::TESNPC *a_fallback = Forms::Loader::npc_spawn_generic )
+	{
+		if ( vec.empty() )
 			return a_fallback;
-		if (!Config::Settings::spawn_from_formlist.GetValue())
+		if ( !Config::Settings::spawn_from_formlist.GetValue() )
 			return a_fallback;
 
-		int rng = RandomiserUtil::GetRandomInt(0, static_cast<int>(vec.size()) - 1);
+		int rng = RandomiserUtil::GetRandomInt( 0, static_cast<int>( vec.size() ) - 1 );
 		return vec[rng] ? vec[rng] : a_fallback;
 	}
 
-	//takes forms from formloader. Will look for a way to make that more dynamic at some point
-	inline static RE::TESNPC* GetNPCFromSpawnType(SpawnEvent type) {
-		switch (type) {
+	// takes forms from formloader. Will look for a way to make that more dynamic at some point
+	inline static RE::TESNPC *GetNPCFromSpawnType( SpawnEvent type )
+	{
+		switch ( type )
+		{
 		case SpawnEvent::kDraugr:
-			return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_draugr, Forms::Loader::container_spawn_draugr);
+			return GetRandomNPCFromList( Forms::Loader::cont_spawn_vec_draugr, Forms::Loader::container_spawn_draugr );
 		case SpawnEvent::kDwarven:
-			return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_dwarven, Forms::Loader::container_spawn_dwarven);
+			return GetRandomNPCFromList( Forms::Loader::cont_spawn_vec_dwarven, Forms::Loader::container_spawn_dwarven );
 		case SpawnEvent::kWarlock:
-			return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_warlock, Forms::Loader::container_spawn_warlock);
+			return GetRandomNPCFromList( Forms::Loader::cont_spawn_vec_warlock, Forms::Loader::container_spawn_warlock );
 		case SpawnEvent::kGeneric:
-			return GetRandomNPCFromList(Forms::Loader::cont_spawn_vec_generic, Forms::Loader::container_spawn_mimic);
+			return GetRandomNPCFromList( Forms::Loader::cont_spawn_vec_generic, Forms::Loader::container_spawn_mimic );
 		case SpawnEvent::kNPCWerewolf:
-			return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_werefolf, Forms::Loader::npc_spawn_werewolf);
+			return GetRandomNPCFromList( Forms::Loader::npc_spawn_vec_werefolf, Forms::Loader::npc_spawn_werewolf );
 		case SpawnEvent::kNPCGeneric:
-			return GetRandomNPCFromList(Forms::Loader::npc_spawn_generic_vec);
+			return GetRandomNPCFromList( Forms::Loader::npc_spawn_generic_vec );
 		case SpawnEvent::kNPCVampire:
-			return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_vampire);
+			return GetRandomNPCFromList( Forms::Loader::npc_spawn_vec_vampire );
 		case SpawnEvent::kNPCUndead:
-			return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_undead);
+			return GetRandomNPCFromList( Forms::Loader::npc_spawn_vec_undead );
 		case SpawnEvent::kNPCDwarven:
-			return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_dwarven);
+			return GetRandomNPCFromList( Forms::Loader::npc_spawn_vec_dwarven );
 		case SpawnEvent::kNPCDragon:
-			return GetRandomNPCFromList(Forms::Loader::npc_spawn_vec_dragon);
+			return GetRandomNPCFromList( Forms::Loader::npc_spawn_vec_dragon );
 		default:
 			return nullptr;
 		}
 	}
 
-	inline static RE::TESObjectREFR* PapyrusPlaceAtMe(RE::TESObjectREFR* target, RE::TESForm* object, bool persistent, bool disabled) {
-		if (target && object) {
-			if (object->GetFormType() == RE::FormType::Explosion && disabled) {
+	inline static RE::TESObjectREFR *PapyrusPlaceAtMe( RE::TESObjectREFR *target, RE::TESForm *object, bool persistent, bool disabled )
+	{
+		if ( target && object )
+		{
+			if ( object->GetFormType() == RE::FormType::Explosion && disabled )
+			{
 				// disabled explosions not allowed
 			}
-			else {
-				using func_t = RE::TESObjectREFR* (*)(std::int64_t, std::int32_t, RE::TESObjectREFR*, RE::TESForm*, std::int32_t, bool, bool);
-				static REL::Relocation<func_t> func{ REL::ID(56203) };
-				return func(NULL, NULL, target, object, 1, persistent, disabled);
+			else
+			{
+				using func_t = RE::TESObjectREFR *(*)( std::int64_t, std::int32_t, RE::TESObjectREFR *, RE::TESForm *, std::int32_t, bool, bool );
+				static REL::Relocation<func_t> func{ REL::ID( 56203 ) };
+				return func( NULL, NULL, target, object, 1, persistent, disabled );
 			}
 		}
 		return nullptr;
