@@ -1,28 +1,28 @@
 #include "cache.h"
-#include "settings.h"
-#include "formloader.h"
 #include "events.h"
+#include "formloader.h"
+#include "settings.h"
 #include "ui.h"
-
 
 void Listener(SKSE::MessagingInterface::Message *a_msg) noexcept
 {
-	switch (a_msg->type) {
-	case SKSE::MessagingInterface::kDataLoaded:
-		Forms::Loader::GetSingleton()->LoadForms(Config::Settings::debug_logging.GetValue());
-		Config::JSONLoader::LoadExceptionsFromFolder();
-		Events::RegisterEvents();
-		break;
-	}
+    switch (a_msg->type)
+    {
+    case SKSE::MessagingInterface::kDataLoaded:
+        Forms::Loader::GetSingleton()->LoadForms(Config::Settings::debug_logging.GetValue());
+        Config::JSONLoader::LoadExceptionsFromFolder();
+        Events::RegisterEvents();
+        break;
+    }
 }
 
 SKSEPluginLoad(const SKSE::LoadInterface *a_skse)
 {
-	SKSE::Init(a_skse);
-	
-	Cache::CacheAddLibAddresses();
-	SKSE::GetMessagingInterface()->RegisterListener(Listener);
-	Config::Settings::GetSingleton()->UpdateSettings();
-	UI::Register();
-	return true;
+    SKSE::Init(a_skse);
+
+    Cache::CacheAddLibAddresses();
+    SKSE::GetMessagingInterface()->RegisterListener(Listener);
+    Config::Settings::GetSingleton()->UpdateSettings();
+    UI::Register();
+    return true;
 }
