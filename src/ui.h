@@ -73,6 +73,7 @@ namespace UI {
 			inline str npc_toggle_undead = "Toggle From Undead";
 			inline str npc_toggle_dwarven = "Toggle From Dwarven NPC";
 			inline str npc_toggle_dragon = "Toggle From Dragons";
+			inline str spawn_from_ore = "Toggle Ore Vein Spawns";
 		}
 		namespace Tooltip {
 			inline str toggle_npc_spawns = "Toggle Spawns from Generic NPCs";
@@ -88,6 +89,7 @@ namespace UI {
 			inline str npc_toggle_undead = "Toggle Spawns from dead undead NPCs";
 			inline str npc_toggle_dwarven = "Toggle Spawns from dwarven NPCs";
 			inline str npc_toggle_dragon = "Toggle Spawns from dragons";
+			inline str spawn_from_ore = "Toggle Spawns from activating/hitting ore veins";
 		}
 
 		inline bool toggle_npc_spawns_temp;
@@ -103,5 +105,6 @@ namespace UI {
 		inline bool npc_toggle_undead;
 		inline bool npc_toggle_dwarven;
 		inline bool npc_toggle_dragon;
+		inline bool spawn_from_ore;
 	}
 }

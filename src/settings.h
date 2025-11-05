@@ -26,6 +26,7 @@ struct Settings : public REX::Singleton<Settings>
     static inline REX::TOML::Bool meme_sound_active{SECTION_TOGGLES, "bUseMemeSound", false};
     static inline REX::TOML::Bool visual_explosions_for_spawns_active{SECTION_TOGGLES, "bUseVisualExplosions", true};
     static inline REX::TOML::Bool spawn_from_formlist{SECTION_TOGGLES, "bSpawnFromList", true};
+	static inline REX::TOML::Bool spawn_from_ore_vein{ SECTION_TOGGLES, "bSpawnFromOreVein", true };
 
     // timere related
     static inline REX::TOML::Bool delay_explosion_active{SECTION_TIMERS, "bUseDelayedExplosion", true};

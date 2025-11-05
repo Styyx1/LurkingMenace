@@ -45,6 +45,7 @@ void RestoreSettingsFromConfig(bool settings, bool toggles)
         Toggles::npc_toggle_undead = s::npc_spawn_undead.GetValue();
         Toggles::npc_toggle_dwarven = s::npc_spawn_dwarven.GetValue();
         Toggles::npc_toggle_dragon = s::npc_spawn_dragon.GetValue();
+		Toggles::spawn_from_ore = s::spawn_from_ore_vein.GetValue();
     }
 }
 
@@ -84,6 +85,7 @@ void RestoreDefaultSettings(bool settings, bool toggles)
         Toggles::npc_toggle_undead = true;
         Toggles::npc_toggle_dwarven = true;
         Toggles::npc_toggle_dragon = false;
+		Toggles::spawn_from_ore = true;
 
         s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
         s::npc_spawn_generic.SetValue(Toggles::toggle_npc_spawns_temp);
@@ -99,6 +101,7 @@ void RestoreDefaultSettings(bool settings, bool toggles)
         s::npc_spawn_undead.SetValue(Toggles::npc_toggle_undead);
         s::npc_spawn_dwarven.SetValue(Toggles::npc_toggle_dwarven);
         s::npc_spawn_dragon.SetValue(Toggles::npc_toggle_dragon);
+		s::spawn_from_ore_vein.SetValue( Toggles::spawn_from_ore );
     }
 
     Config::Settings::GetSingleton()->UpdateSettings(true);
@@ -126,7 +129,7 @@ void __stdcall RenderSettings()
     ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Settings.c_str());
 
     ImGui::SetNextItemWidth(300.f);
-    if (ImGui::SliderFloat(Label::spawn_chance.c_str(), &spawn_chance_temp, 0.0, 100.0))
+	if ( ImGui::SliderFloat( Label::spawn_chance.c_str(), &spawn_chance_temp, 0.0, 100.0, "%.2f%%" ) )
     {
         s::mimic_chance.SetValue(spawn_chance_temp);
     }
@@ -159,7 +162,7 @@ void __stdcall RenderSettings()
     ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Timers.c_str());
 
     ImGui::SetNextItemWidth(300.f);
-    if (ImGui::SliderFloat(Label::delay_time_without_range.c_str(), &delay_time_without_delay_temp, 0.0f, 20.0f))
+	if ( ImGui::SliderFloat( Label::delay_time_without_range.c_str(), &delay_time_without_delay_temp, 0.0f, 20.0f, "%.2fsec" ) )
     {
         s::delay_timer_seconds.SetValue(delay_time_without_delay_temp);
     }
@@ -167,8 +170,7 @@ void __stdcall RenderSettings()
     HelpMarker(Tooltip::delay_time_without_range.c_str());
 
     ImGui::SetNextItemWidth(300.f);
-    if (ImGui::SliderFloat(Label::delay_time_min.c_str(), &delay_time_range_minimum_temp, 0.0f,
-                           delay_time_range_maximum_temp))
+    if (ImGui::SliderFloat(Label::delay_time_min.c_str(), &delay_time_range_minimum_temp, 0.0f, delay_time_range_maximum_temp, "%.2fsec" ) )
     {
         s::delay_timer_seconds.SetValue(delay_time_range_minimum_temp);
     }
@@ -176,8 +178,7 @@ void __stdcall RenderSettings()
     HelpMarker(Tooltip::delay_time_min.c_str());
 
     ImGui::SetNextItemWidth(300.f);
-    if (ImGui::SliderFloat(Label::delay_time_max.c_str(), &delay_time_range_maximum_temp, delay_time_range_minimum_temp,
-                           25.0f))
+    if (ImGui::SliderFloat(Label::delay_time_max.c_str(), &delay_time_range_maximum_temp, delay_time_range_minimum_temp, 25.0f, "%.2fsec" ) )
     {
         s::delay_timer_seconds.SetValue(delay_time_range_maximum_temp);
     }
@@ -225,6 +226,14 @@ void __stdcall RenderToggles()
     }
     ImGui::SameLine();
     HelpMarker(Tooltip::toggle_explosion_visuals.c_str());
+
+    //line 2 misc
+	if ( ImGui::Checkbox( Label::spawn_from_ore.c_str(), &spawn_from_ore ) )
+	{
+		s::spawn_from_ore_vein.SetValue( spawn_from_ore );
+    }
+	ImGui::SameLine();
+	HelpMarker( Tooltip::spawn_from_ore.c_str() );
 
     ImGui::NewLine();
     ImGui::TextColored(ImVec4(0.2f, 0.85f, 0.4f, 1.0f), MenuTitles::Spawns.c_str());

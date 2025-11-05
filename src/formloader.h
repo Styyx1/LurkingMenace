@@ -31,6 +31,8 @@ struct Loader : public REX::Singleton<Loader>
 	inline static RE::BGSListForm *cont_spawn_formlist_dwarven{ nullptr };
 	inline static RE::BGSListForm *cont_spawn_formlist_warlock{ nullptr };
 
+    inline static RE::BGSListForm *ore_vein_spawn_list{ nullptr };
+
 	inline static RE::BGSListForm *ore_tool_formlist{ nullptr };
 
 	using VECN = std::vector<RE::TESNPC *>;
@@ -44,6 +46,7 @@ struct Loader : public REX::Singleton<Loader>
 	inline static VECN cont_spawn_vec_draugr;
 	inline static VECN cont_spawn_vec_dwarven;
 	inline static VECN cont_spawn_vec_warlock;
+	inline static VECN ore_vein_spawn_vec;
 
 	inline static std::unordered_set<RE::TESObjectWEAP*> ore_tool_list;
 
@@ -126,6 +129,10 @@ struct Loader : public REX::Singleton<Loader>
         cont_spawn_formlist_dwarven = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_DWARVEN, MIMIC_MOD_NAME);
         cont_spawn_formlist_warlock = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_WARLOCK, MIMIC_MOD_NAME);
 
+        ore_vein_spawn_list = dh->LookupForm<BGSListForm>( ORE_VEIN_SPAWN_LIST, MIMIC_MOD_NAME );
+        // tool formlist 
+        ore_tool_formlist = dh->LookupForm<BGSListForm>( ORE_TOOL_FORMLIST, SKYRIM_MOD_NAME );
+
         FormlistToVector(npc_spawn_formlist_generic, npc_spawn_generic_vec);
         DebugVecSize("npc_spawn_generic_vec", npc_spawn_generic_vec);
 
@@ -155,6 +162,9 @@ struct Loader : public REX::Singleton<Loader>
 
         FormlistToVector(cont_spawn_formlist_warlock, cont_spawn_vec_warlock);
         DebugVecSize(std::string("cont_spawn_vec_warlock"), cont_spawn_vec_warlock);
+
+        FormlistToVector( ore_vein_spawn_list, ore_vein_spawn_vec );
+		DebugVecSize( std::string( "ore_vein_spawn_vec" ), ore_vein_spawn_vec );
 
         FillToolVec( ore_tool_formlist, ore_tool_list );
 

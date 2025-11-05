@@ -9,29 +9,7 @@ void RegisterEvents()
 {
     LootActivateEvent::GetSingleton()->RegisterActivateEvents();
 	HitEvent::GetSingleton()->Register();
-    //MenuEvent::GetSingleton()->RegisterMenuEvents();
 }
-#pragma region Menu
-EventRes MenuEvent::ProcessEvent(const RE::MenuOpenCloseEvent *event, RE::BSTEventSource<RE::MenuOpenCloseEvent> *)
-{
-    auto loot_menu = RE::ContainerMenu::MENU_NAME;
-
-    if (!event)
-        return EventRes::kContinue;
-
-    if (!event->opening)
-        return EventRes::kContinue;
-
-    if (event->menuName == loot_menu)
-    {
-        if (Events::LootActivateEvent::check_timer.IsRunning())
-        {
-            MenuUtil::CloseMenu(loot_menu);
-        }
-    }
-    return EventRes::kContinue;
-};
-#pragma endregion Menu
 #pragma region Loot
 EventRes LootActivateEvent::ProcessEvent(const RE::TESActivateEvent *a_event,
                                          RE::BSTEventSource<RE::TESActivateEvent> *)
@@ -48,19 +26,15 @@ EventRes LootActivateEvent::ProcessEvent(const RE::TESActivateEvent *a_event,
         return EventRes::kContinue;
 
 	auto delay = Utility::GetTimer();
-
 	ref_timer.StopIfExpired( activated_object, delay );
-
 	if ( ref_timer.IsActive( activated_object ) )
 		return EventRes::kContinue;
 
     if (!RandomiserUtil::IsPercentageChanceFloat(Config::Settings::mimic_chance.GetValue()))
         return EventRes::kContinue;
+
     if (CellUtil::IsJail(ActorUtil::GetPlayerCell(player)))
-    {
-        REX::INFO("location is jail");
-        return EventRes::kContinue;
-    }
+		return EventRes::kContinue;
 
     if (Utility::isAnyException(activated_object))
         return EventRes::kContinue;
@@ -70,15 +44,19 @@ EventRes LootActivateEvent::ProcessEvent(const RE::TESActivateEvent *a_event,
         if (const auto ore_key = RE::TESForm::LookupByEditorID<RE::BGSKeyword>(ORE_KEYWORD);
             ore_key && activated_object->HasKeyword(ore_key))
         {
+			if ( !Config::Settings::spawn_from_ore_vein.GetValue() )
+				return EventRes::kContinue;
+
             ref_timer.Start(activated_object);
-            DelayedSpawn(player, Forms::Loader::npc_spawn_generic, Forms::Loader::spawn_visual_explosion,
+			auto npc_to_spawn = Utility::GetRandomNPCFromList( Forms::Loader::ore_vein_spawn_vec, Forms::Loader::container_spawn_warlock );
+			DelayedSpawn( player, npc_to_spawn, Forms::Loader::spawn_visual_explosion,
                          Utility::GetTimer(), false);
             return EventRes::kContinue;
         };
     }
 
     auto spawn_type = Utility::GetSpawnEvent(activated_object);
-    REX::INFO("Spawn event is: {}", Utility::SpawnEventToString(spawn_type));
+    REX::DEBUG("Spawn event is: {}", Utility::SpawnEventToString(spawn_type));
 
     if (!Utility::IsSpawnTypeEnabled(spawn_type))
         return EventRes::kContinue;
@@ -173,10 +151,13 @@ void LootActivateEvent::DelayedSpawn(RE::TESObjectREFR *source, RE::TESNPC *npc_
     }
 }
 #pragma endregion Loot
+#pragma region Hit
 EventRes HitEvent::ProcessEvent( const RE::TESHitEvent *event, RE::BSTEventSource<RE::TESHitEvent> * )
 {
     using HitFlag = RE::TESHitEvent::Flag;
 	if ( !event )
+		return EventRes::kContinue;
+	if ( !Config::Settings::spawn_from_ore_vein.GetValue() )
 		return EventRes::kContinue;
 
     if ( !event->target || !event->cause || !event->source )
@@ -186,7 +167,7 @@ EventRes HitEvent::ProcessEvent( const RE::TESHitEvent *event, RE::BSTEventSourc
 	if ( !aggressor )
         return EventRes::kContinue;
 
-    if ( aggressor->IsPlayerRef() )
+    if ( !aggressor->IsPlayerRef() )
 		return EventRes::kContinue;
 
     if ( event->flags.any( HitFlag::kBashAttack ) )
@@ -200,28 +181,37 @@ EventRes HitEvent::ProcessEvent( const RE::TESHitEvent *event, RE::BSTEventSourc
 
     auto weap = ActorUtil::getWieldingWeapon( aggressor );
 	if ( !weap || weap->IsHandToHandMelee() || weap->IsRanged() )
+	{
+		REX::INFO( "bail at weap check" );
 		return EventRes::kContinue;
-
-	auto key = RE::TESForm::LookupByEditorID<RE::BGSKeyword>( "VendorItemTool" );
-    if (!key || !weap->HasKeyword(key))
-		return EventRes::kContinue;
-
+    }	
+    
     if ( !Forms::Loader::ore_tool_list.contains( weap ) )
 		return EventRes::kContinue;
 
     auto delay = Utility::GetTimer();
-
-	LootActivateEvent::ref_timer.StopIfExpired( targ, delay );
-
+	LootActivateEvent::ref_timer.StopIfExpired( targ, delay + std::chrono::seconds(10) );
+	
     if ( LootActivateEvent::ref_timer.IsActive(targ) )
 		return EventRes::kContinue;
+
+    if ( !RandomiserUtil::IsPercentageChanceFloat( Config::Settings::mimic_chance.GetValue() ) )
+		return EventRes::kContinue;
+
+	if ( CellUtil::IsJail( ActorUtil::GetPlayerCell( RE::PlayerCharacter::GetSingleton() ) ) )
+		return EventRes::kContinue;
+
+	if ( Utility::isAnyException( targ ) )
+		return EventRes::kContinue;
+
 
     if ( targ->GetBaseObject()->Is( RE::FormType::Activator ) )
 	{
 		if ( const auto ore_key = RE::TESForm::LookupByEditorID<RE::BGSKeyword>( ORE_KEYWORD ); ore_key && targ->HasKeyword( ore_key ) )
 		{
 			LootActivateEvent::ref_timer.Start( targ );
-			LootActivateEvent::GetSingleton()->DelayedSpawn( aggressor, Forms::Loader::npc_spawn_generic, Forms::Loader::spawn_visual_explosion, Utility::GetTimer(), false );
+			auto npc_to_spawn = Utility::GetRandomNPCFromList( Forms::Loader::ore_vein_spawn_vec, Forms::Loader::container_spawn_warlock );
+			LootActivateEvent::GetSingleton()->DelayedSpawn( targ, npc_to_spawn, Forms::Loader::spawn_visual_explosion, Utility::GetTimer(), false );
 			return EventRes::kContinue;
 		};
 	}
@@ -230,14 +220,13 @@ EventRes HitEvent::ProcessEvent( const RE::TESHitEvent *event, RE::BSTEventSourc
 
 	return EventRes::kContinue;
 }
+#pragma endregion Hit
 inline RE::UI_MESSAGE_RESULTS ContainerMenuHook::ProcessMessage(RE::ContainerMenu* a_this, RE::UIMessage& a_message)
 {
 	if ( a_message.type.get() == RE::UI_MESSAGE_TYPE::kShow )
 	{
 		auto ref = a_this->GetTargetRefHandle();
 		auto refr = RE::TESObjectREFR::LookupByHandle( ref );
-
-		REX::INFO( "inside menu hook" );
 		if ( refr.get() )
 		{
 			if ( LootActivateEvent::ref_timer.IsActive( refr.get() ) )

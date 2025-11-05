@@ -53,26 +53,6 @@ namespace Events
         void DelayedSpawn(RE::TESObjectREFR* source, RE::TESNPC* npc_to_spawn, RE::TESBoundObject* explosion, std::chrono::duration<double> delay,bool disable_source = false);
     };
 
-    struct MenuEvent : public REX::Singleton<MenuEvent>, public RE::BSTEventSink<RE::MenuOpenCloseEvent>
-    {
-        EventRes ProcessEvent(const RE::MenuOpenCloseEvent* event, RE::BSTEventSource<RE::MenuOpenCloseEvent>*) override;
-
-        void RegisterMenuEvents()
-        {
-            if (const auto scripts = RE::UI::GetSingleton()) {
-                scripts->AddEventSink<RE::MenuOpenCloseEvent>(this);
-                REX::INFO("Registered {}", typeid(RE::MenuOpenCloseEvent).name());
-            }
-        }
-
-        inline void CloseMenu(RE::BSFixedString a_menuName)
-        {
-            if (const auto UIMsgQueue = RE::UIMessageQueue::GetSingleton(); UIMsgQueue) {
-                UIMsgQueue->AddMessage(a_menuName, RE::UI_MESSAGE_TYPE::kHide, nullptr);
-            }
-        }
-    };
-
     struct HitEvent : public REX::Singleton<HitEvent>, public RE::BSTEventSink<RE::TESHitEvent>
 	{
 		void Register() {

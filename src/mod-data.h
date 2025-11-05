@@ -37,6 +37,7 @@ inline constexpr i32 CONTAINER_SPAWN_LIST_GENERIC = 0x81F;
 inline constexpr i32 CONTAINER_SPAWN_LIST_DRAUGR = 0x820;
 inline constexpr i32 CONTAINER_SPAWN_LIST_DWARVEN = 0x821;
 inline constexpr i32 CONTAINER_SPAWN_LIST_WARLOCK = 0x822;
+inline constexpr i32 ORE_VEIN_SPAWN_LIST = 0x824;
 
 //ore tool formlist
 inline constexpr i32 ORE_TOOL_FORMLIST = 0x10ACC4;
