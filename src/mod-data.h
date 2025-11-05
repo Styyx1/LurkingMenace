@@ -38,6 +38,9 @@ inline constexpr i32 CONTAINER_SPAWN_LIST_DRAUGR = 0x820;
 inline constexpr i32 CONTAINER_SPAWN_LIST_DWARVEN = 0x821;
 inline constexpr i32 CONTAINER_SPAWN_LIST_WARLOCK = 0x822;
 
+//ore tool formlist
+inline constexpr i32 ORE_TOOL_FORMLIST = 0x10ACC4;
+
 // misc
 inline constexpr std::string_view ORE_KEYWORD = "ActiTypeOre";
 
