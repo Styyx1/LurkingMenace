@@ -8,7 +8,7 @@ namespace Config
 struct Settings : public REX::Singleton<Settings>
 {
     static inline REX::TOML::Bool debug_logging{SECTION_DEBUG, "bEnableDebug", false};
-    static inline REX::TOML::F32 mimic_chance{SECTION_SETTINGS, "fEventSpawnChance", 50.0f};
+    static inline REX::TOML::F32 mimic_chance{SECTION_SETTINGS, "fEventSpawnChance", 10.0f};
     // npc toggles
     static inline REX::TOML::Bool npc_spawn_generic{SECTION_TOGGLES, "bSpawnFromNpcsGeneric", true};
     static inline REX::TOML::Bool npc_spawn_werewolf{SECTION_TOGGLES, "bNPCSpawnWerewolf", true};

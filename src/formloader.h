@@ -7,83 +7,80 @@ namespace Forms
 struct Loader : public REX::Singleton<Loader>
 {
 
-	inline static RE::BGSExplosion *spawn_visual_explosion{ nullptr };
-	inline static RE::BGSExplosion *spawn_urn_explosion{ nullptr };
-	inline static RE::TESNPC *npc_spawn_generic{ nullptr };
-	inline static RE::TESNPC *container_spawn_draugr{ nullptr };
-	inline static RE::TESNPC *container_spawn_dwarven{ nullptr };
-	inline static RE::TESNPC *container_spawn_warlock{ nullptr };
-	inline static RE::TESNPC *npc_spawn_werewolf{ nullptr };
-	inline static RE::TESNPC *container_spawn_mimic{ nullptr };
-	inline static RE::TESFaction *werewolf_faction{ nullptr };
-	inline static RE::SpellItem *stress_spell{ nullptr };
-	inline static RE::BGSSoundDescriptorForm *meme_sound{ nullptr };
+    inline static RE::BGSExplosion *spawn_visual_explosion{nullptr};
+    inline static RE::BGSExplosion *spawn_urn_explosion{nullptr};
+    inline static RE::TESNPC *npc_spawn_generic{nullptr};
+    inline static RE::TESNPC *container_spawn_draugr{nullptr};
+    inline static RE::TESNPC *container_spawn_dwarven{nullptr};
+    inline static RE::TESNPC *container_spawn_warlock{nullptr};
+    inline static RE::TESNPC *npc_spawn_werewolf{nullptr};
+    inline static RE::TESNPC *container_spawn_mimic{nullptr};
+    inline static RE::TESFaction *werewolf_faction{nullptr};
+    inline static RE::SpellItem *stress_spell{nullptr};
+    inline static RE::BGSSoundDescriptorForm *meme_sound{nullptr};
 
-	inline static RE::BGSListForm *npc_spawn_formlist_generic{ nullptr };
-	inline static RE::BGSListForm *npc_spawn_formlist_werewolf{ nullptr };
-	inline static RE::BGSListForm *npc_spawn_formlist_vampire{ nullptr };
-	inline static RE::BGSListForm *npc_spawn_formlist_dwarven{ nullptr };
-	inline static RE::BGSListForm *npc_spawn_formlist_undead{ nullptr };
-	inline static RE::BGSListForm *npc_spawn_formlist_dragon{ nullptr };
+    inline static RE::BGSListForm *npc_spawn_formlist_generic{nullptr};
+    inline static RE::BGSListForm *npc_spawn_formlist_werewolf{nullptr};
+    inline static RE::BGSListForm *npc_spawn_formlist_vampire{nullptr};
+    inline static RE::BGSListForm *npc_spawn_formlist_dwarven{nullptr};
+    inline static RE::BGSListForm *npc_spawn_formlist_undead{nullptr};
+    inline static RE::BGSListForm *npc_spawn_formlist_dragon{nullptr};
 
-	inline static RE::BGSListForm *cont_spawn_formlist_generic{ nullptr };
-	inline static RE::BGSListForm *cont_spawn_formlist_draugr{ nullptr };
-	inline static RE::BGSListForm *cont_spawn_formlist_dwarven{ nullptr };
-	inline static RE::BGSListForm *cont_spawn_formlist_warlock{ nullptr };
+    inline static RE::BGSListForm *cont_spawn_formlist_generic{nullptr};
+    inline static RE::BGSListForm *cont_spawn_formlist_draugr{nullptr};
+    inline static RE::BGSListForm *cont_spawn_formlist_dwarven{nullptr};
+    inline static RE::BGSListForm *cont_spawn_formlist_warlock{nullptr};
 
-    inline static RE::BGSListForm *ore_vein_spawn_list{ nullptr };
+    inline static RE::BGSListForm *ore_vein_spawn_list{nullptr};
 
-	inline static RE::BGSListForm *ore_tool_formlist{ nullptr };
+    inline static RE::BGSListForm *ore_tool_formlist{nullptr};
 
-	using VECN = std::vector<RE::TESNPC *>;
-	inline static VECN npc_spawn_generic_vec;
-	inline static VECN npc_spawn_vec_werefolf;
-	inline static VECN npc_spawn_vec_vampire;
-	inline static VECN npc_spawn_vec_dwarven;
-	inline static VECN npc_spawn_vec_undead;
-	inline static VECN npc_spawn_vec_dragon;
-	inline static VECN cont_spawn_vec_generic;
-	inline static VECN cont_spawn_vec_draugr;
-	inline static VECN cont_spawn_vec_dwarven;
-	inline static VECN cont_spawn_vec_warlock;
-	inline static VECN ore_vein_spawn_vec;
+    using VECN = std::vector<RE::TESNPC *>;
+    inline static VECN npc_spawn_generic_vec;
+    inline static VECN npc_spawn_vec_werefolf;
+    inline static VECN npc_spawn_vec_vampire;
+    inline static VECN npc_spawn_vec_dwarven;
+    inline static VECN npc_spawn_vec_undead;
+    inline static VECN npc_spawn_vec_dragon;
+    inline static VECN cont_spawn_vec_generic;
+    inline static VECN cont_spawn_vec_draugr;
+    inline static VECN cont_spawn_vec_dwarven;
+    inline static VECN cont_spawn_vec_warlock;
+    inline static VECN ore_vein_spawn_vec;
 
-	inline static std::unordered_set<RE::TESObjectWEAP*> ore_tool_list;
+    inline static std::unordered_set<RE::TESObjectWEAP *> ore_tool_list;
 
-	inline void FormlistToVector( RE::BGSListForm *list, std::vector<RE::TESNPC *> &vec )
-	{
-		if ( list )
-		{
-			list->ForEachForm( [&]( RE::TESForm *a_formInList )
-			{
-				auto npc = a_formInList->As<RE::TESNPC>();
-				if ( npc )
-				{
-					vec.emplace_back( npc );
-					return RE::BSContainer::ForEachResult::kContinue;
-				}
-				return RE::BSContainer::ForEachResult::kContinue;
-			} );
-		}
-	}
+    inline void FormlistToVector(RE::BGSListForm *list, std::vector<RE::TESNPC *> &vec)
+    {
+        if (list)
+        {
+            list->ForEachForm([&](RE::TESForm *a_formInList) {
+                auto npc = a_formInList->As<RE::TESNPC>();
+                if (npc)
+                {
+                    vec.emplace_back(npc);
+                    return RE::BSContainer::ForEachResult::kContinue;
+                }
+                return RE::BSContainer::ForEachResult::kContinue;
+            });
+        }
+    }
 
-	inline void FillToolVec( RE::BGSListForm *list, std::unordered_set<RE::TESObjectWEAP *> &set )
-	{
-		if ( !list )
-			return;
-		list->ForEachForm( [&]( RE::TESForm *a_formInList )
-		{
-			auto weap = a_formInList->As<RE::TESObjectWEAP>();
-			if ( weap )
-			{
-				set.insert( weap );
-				return RE::BSContainer::ForEachResult::kContinue;
-			}
+    inline void FillToolVec(RE::BGSListForm *list, std::unordered_set<RE::TESObjectWEAP *> &set)
+    {
+        if (!list)
+            return;
+        list->ForEachForm([&](RE::TESForm *a_formInList) {
+            auto weap = a_formInList->As<RE::TESObjectWEAP>();
+            if (weap)
+            {
+                set.insert(weap);
+                return RE::BSContainer::ForEachResult::kContinue;
+            }
 
-			return RE::BSContainer::ForEachResult::kContinue;
-		} );       
-	}
-
+            return RE::BSContainer::ForEachResult::kContinue;
+        });
+    }
 
     void LogForm(RE::TESForm *a_form)
     {
@@ -101,8 +98,8 @@ struct Loader : public REX::Singleton<Loader>
 
         if (const auto file = dh->LookupModByName(MIMIC_MOD_NAME); !file || file->compileIndex == 0xFF)
         {
-			std::string mod_name = MIMIC_MOD_NAME.data();
-			REX::FAIL( std :: format( "Can not load {} please make sure the mod is enabled!", mod_name) );
+            std::string mod_name = MIMIC_MOD_NAME.data();
+            REX::FAIL("Can not load {} please make sure the mod is enabled!", mod_name);
         }
 
         spawn_visual_explosion = dh->LookupForm<BGSExplosion>(VISUAL_EXPLOSIONS_F_SPAWNS, MIMIC_MOD_NAME);
@@ -129,9 +126,9 @@ struct Loader : public REX::Singleton<Loader>
         cont_spawn_formlist_dwarven = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_DWARVEN, MIMIC_MOD_NAME);
         cont_spawn_formlist_warlock = dh->LookupForm<BGSListForm>(CONTAINER_SPAWN_LIST_WARLOCK, MIMIC_MOD_NAME);
 
-        ore_vein_spawn_list = dh->LookupForm<BGSListForm>( ORE_VEIN_SPAWN_LIST, MIMIC_MOD_NAME );
-        // tool formlist 
-        ore_tool_formlist = dh->LookupForm<BGSListForm>( ORE_TOOL_FORMLIST, SKYRIM_MOD_NAME );
+        ore_vein_spawn_list = dh->LookupForm<BGSListForm>(ORE_VEIN_SPAWN_LIST, MIMIC_MOD_NAME);
+        // tool formlist
+        ore_tool_formlist = dh->LookupForm<BGSListForm>(ORE_TOOL_FORMLIST, SKYRIM_MOD_NAME);
 
         FormlistToVector(npc_spawn_formlist_generic, npc_spawn_generic_vec);
         DebugVecSize("npc_spawn_generic_vec", npc_spawn_generic_vec);
@@ -163,10 +160,10 @@ struct Loader : public REX::Singleton<Loader>
         FormlistToVector(cont_spawn_formlist_warlock, cont_spawn_vec_warlock);
         DebugVecSize(std::string("cont_spawn_vec_warlock"), cont_spawn_vec_warlock);
 
-        FormlistToVector( ore_vein_spawn_list, ore_vein_spawn_vec );
-		DebugVecSize( std::string( "ore_vein_spawn_vec" ), ore_vein_spawn_vec );
+        FormlistToVector(ore_vein_spawn_list, ore_vein_spawn_vec);
+        DebugVecSize(std::string("ore_vein_spawn_vec"), ore_vein_spawn_vec);
 
-        FillToolVec( ore_tool_formlist, ore_tool_list );
+        FillToolVec(ore_tool_formlist, ore_tool_list);
 
         if (with_logging)
         {

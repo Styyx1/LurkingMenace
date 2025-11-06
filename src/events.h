@@ -70,7 +70,7 @@ namespace Events
     struct ContainerMenuHook
 	{
 	  private: 
-          inline static RE::UI_MESSAGE_RESULTS ProcessMessage( RE::ContainerMenu *a_this, RE::UIMessage &a_message );
+        inline static RE::UI_MESSAGE_RESULTS ProcessMessage( RE::ContainerMenu *a_this, RE::UIMessage &a_message );
 		inline static REL::HookVFT _Hook0{ RE::VTABLE_ContainerMenu[0], 0x04, ProcessMessage };
     };
 	} // namespace Events

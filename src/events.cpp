@@ -221,7 +221,7 @@ EventRes HitEvent::ProcessEvent( const RE::TESHitEvent *event, RE::BSTEventSourc
 	return EventRes::kContinue;
 }
 #pragma endregion Hit
-inline RE::UI_MESSAGE_RESULTS ContainerMenuHook::ProcessMessage(RE::ContainerMenu* a_this, RE::UIMessage& a_message)
+RE::UI_MESSAGE_RESULTS ContainerMenuHook::ProcessMessage(RE::ContainerMenu* a_this, RE::UIMessage& a_message)
 {
 	if ( a_message.type.get() == RE::UI_MESSAGE_TYPE::kShow )
 	{
